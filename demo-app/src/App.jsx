@@ -244,8 +244,12 @@ Use correct terminology (UT thickness, NSTM, SSPC, growth work). Be specific to 
         .ff-display{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif}
         .ff-body{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
         .ff-mono{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
-        .kbp{background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:42px 42px}
-        .kglow{box-shadow:0 24px 70px -30px rgba(45,212,191,.30)}
+        .kbp{background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:46px 46px}
+        .kglow{box-shadow:0 24px 70px -30px rgba(52,216,196,.30)}
+        .tnum{font-variant-numeric:tabular-nums}
+        @media (prefers-reduced-motion:reduce){
+          .animate-rise-in{animation:none!important}
+        }
         @media print {
           body * { visibility: hidden !important; }
           .print-page, .print-page * { visibility: visible !important; }
@@ -295,7 +299,7 @@ Use correct terminology (UT thickness, NSTM, SSPC, growth work). Be specific to 
           </span>
         </header>
 
-        <div className="p-5 md:p-8 max-w-5xl mx-auto">
+        <div key={view} className="p-5 md:p-8 max-w-5xl mx-auto animate-rise-in">
           {view === "dashboard" && <Dashboard onNew={() => go("new")} onOpen={(d) => setViewerDoc(d)} />}
           {view === "new" && (
             <NewReport
@@ -344,11 +348,11 @@ function DataResidency() {
   );
 }
 
-function Stat({ icon: Icon, value, label, accent }) {
+function Stat({ icon: Icon, value, label, accent, delay = 0 }) {
   return (
-    <div className="bg-slate-900 rounded-xl border border-slate-800 p-4">
+    <div className="bg-slate-900 rounded-xl border border-slate-800 p-4 animate-rise-in" style={{ animationDelay: `${delay}ms` }}>
       <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${accent}`}><Icon size={18} /></div>
-      <p className="ff-display text-2xl font-extrabold tracking-tight text-white">{value}</p>
+      <p className="ff-display text-2xl font-extrabold tracking-tight text-white tnum">{value}</p>
       <p className="text-xs text-slate-400 mt-0.5">{label}</p>
     </div>
   );
@@ -373,10 +377,10 @@ function Dashboard({ onNew, onOpen }) {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat icon={FileText} value="38" label="Documents this availability" accent="bg-slate-800 text-slate-300" />
-        <Stat icon={Clock} value="29 hrs" label="Est. QA hours saved" accent="bg-teal-900 text-teal-300" />
-        <Stat icon={AlertTriangle} value="3" label="Growth-work CFRs open" accent="bg-amber-900 text-amber-300" />
-        <Stat icon={CircleCheck} value="91%" label="OQE first-pass accepted" accent="bg-emerald-900 text-emerald-300" />
+        <Stat icon={FileText} value="38" label="Documents this availability" accent="bg-slate-800 text-slate-300" delay={0} />
+        <Stat icon={Clock} value="29 hrs" label="Est. QA hours saved" accent="bg-teal-900 text-teal-300" delay={60} />
+        <Stat icon={AlertTriangle} value="3" label="Growth-work CFRs open" accent="bg-amber-900 text-amber-300" delay={120} />
+        <Stat icon={CircleCheck} value="91%" label="OQE first-pass accepted" accent="bg-emerald-900 text-emerald-300" delay={180} />
       </div>
 
       <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">

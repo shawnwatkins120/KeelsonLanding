@@ -1,0 +1,13 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Python cache (from skill scripts)
+__pycache__/
+*.pyc
+
+# Logs & OS
+*.log
+.DS_Store
