@@ -73,10 +73,10 @@
   .panel-label{position:absolute;top:-10px;left:18px;background:var(--ink);padding:0 9px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--haze-2);text-transform:uppercase}
   .xform{display:grid;grid-template-columns:1fr auto 1.12fr;gap:14px;align-items:center}
   .ev-col .ev-h,.doc .doc-h{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--haze-2);margin-bottom:9px}
-  .photos{display:flex;gap:7px;margin-bottom:10px}
-  .photo{flex:1;height:48px;border-radius:6px;border:1px solid var(--line);background:linear-gradient(135deg,#3a4654,#1d2630);position:relative;overflow:hidden}
-  .photo::after{content:attr(data-c);position:absolute;left:4px;bottom:3px;font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.5)}
-  .photo::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.12),transparent 60%)}
+  .ev-types{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+  .et{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.02em;color:var(--haze);background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
+  .et svg{width:11px;height:11px;color:var(--signal);flex:none}
+  .et.more{color:var(--haze-2);border-style:dashed}
   .notes{font-family:var(--mono);font-size:11px;color:var(--haze);background:rgba(0,0,0,.25);border:1px solid var(--line-2);border-radius:7px;padding:9px;line-height:1.5}
   .mic{display:inline-flex;align-items:center;gap:5px;margin-top:9px;font-family:var(--mono);font-size:9px;color:var(--signal);letter-spacing:.06em}
   .xarrow{display:grid;place-items:center;color:var(--signal)}
@@ -116,6 +116,10 @@
   .docs-out{display:flex;gap:12px;flex-wrap:wrap;margin-top:42px}
   .doc-pill{font-family:var(--mono);font-size:12.5px;color:var(--haze);border:1px solid var(--line);border-radius:30px;padding:9px 16px;background:var(--surface)}
   .doc-pill b{color:var(--paper);font-weight:500}
+  .doc-pill.custom{border-color:rgba(52,216,196,.4);background:var(--signal-deep)}
+  .doc-pill.custom b{color:var(--signal)}
+  .docs-note{font-family:var(--mono);font-size:12.5px;color:var(--haze);margin-top:20px;letter-spacing:.02em;max-width:64ch;line-height:1.7}
+  .docs-note b{color:var(--signal);font-weight:500}
 
   /* SECURITY */
   .security{background:var(--ink-2);border-top:1px solid var(--line)}
@@ -261,7 +265,7 @@
     <div>
       <span class="eyebrow">For the U.S. private ship-repair industrial base</span>
       <h1>Field evidence in.<br><span class="hl">Audit-ready documentation</span> out.</h1>
-      <p class="lede">Keelson turns deck photos and rough field notes into formatted, verifiable repair documentation in seconds — and runs entirely inside your own secure environment, so controlled information never leaves your boundary.</p>
+      <p class="lede">Keelson turns whatever your crew captures on the deck — photos, voice notes, gauge readings, rough field notes — into formatted, verifiable repair documentation in seconds, and runs entirely inside your own secure environment, so controlled information never leaves your boundary.</p>
       <div class="hero-cta">
         <a href="#" class="btn btn-primary js-demo-link">Launch the demo <span class="arrow">→</span></a>
         <a href="#how" class="btn btn-ghost">See how it works</a>
@@ -278,11 +282,13 @@
       <span class="panel-label">Condition found · MMR2 · Fr 142–148</span>
       <div class="xform">
         <div class="ev-col">
-          <div class="ev-h">Field evidence</div>
-          <div class="photos">
-            <div class="photo" data-c="FR144"></div>
-            <div class="photo" data-c="UT .281"></div>
-            <div class="photo" data-c="FR146"></div>
+          <div class="ev-h">Field evidence · any format</div>
+          <div class="ev-types">
+            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.2"/></svg>Photos</span>
+            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg>Voice notes</span>
+            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4.5 4.5 0 0 1 3 3L21 21l-5.3-3.3a4.5 4.5 0 0 1-3-3z"/><path d="M3 3l7.5 7.5M9 5l2 2M5 9l2 2"/></svg>UT / gauge readings</span>
+            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Sketches &amp; markups</span>
+            <span class="et more">+ scans, forms, logs…</span>
           </div>
           <div class="notes">heavy scale + pitting under deck plates, tank top bad ~fr144-146, UT shots .280 (nominal .375), water intrusion, coating gone…</div>
           <div class="mic"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" stroke-width="2" fill="none"/></svg>DICTATED ON DECK</div>
@@ -297,8 +303,9 @@
           <div class="doc-meta"><span>CFR-26-3-0147</span><span>HULL-072</span><span>AVAIL 26-3</span></div>
           <div class="doc-body">Upon removal of deck plating, accelerated corrosion and through-scale pitting identified, Fr 142–148. UT minimum 0.281″ vs 0.375″ nominal — below allowable in multiple locations…</div>
           <div>
-            <span class="doc-chip">▣ #1 FR144</span>
-            <span class="doc-chip">▣ #2 UT</span>
+            <span class="doc-chip">▣ Photo · FR144</span>
+            <span class="doc-chip">▣ UT log · .281</span>
+            <span class="doc-chip">▣ Voice note</span>
           </div>
           <div class="doc-verify"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>VERIFIED · READY FOR QA SIGN-OFF</div>
         </div>
@@ -341,7 +348,7 @@
     <div class="sec-head reveal">
       <span class="eyebrow">How it works</span>
       <h2>Capture the work. Keelson writes the record.</h2>
-      <p>Your crew already takes the photos and knows what they found. Keelson does the part they hate — turning it into the document your customer will accept.</p>
+      <p>Your crew already captures what they found on the deck — however they capture it. Keelson does the part they hate: turning it into the document your customer will accept.</p>
     </div>
     <div class="steps">
       <div class="step reveal">
@@ -349,14 +356,14 @@
         <div class="step-line"></div>
         <div class="sn">01 — CAPTURE</div>
         <h3>From the deck</h3>
-        <p>Phone photos and a few dictated notes — frame stations, UT readings, what the crew found. Rough is fine.</p>
+        <p>Photos, dictated voice notes, UT and gauge readings, a scribbled sketch, a scanned form — whatever the crew has. Rough is fine.</p>
       </div>
       <div class="step reveal">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-3.8 3 1.1 4.8L12 14.5 8.2 16.8 9.3 12 5.5 9l4.6-1.4z"/></svg></div>
         <div class="step-line"></div>
         <div class="sn">02 — GENERATE</div>
         <h3>Audit-ready draft</h3>
-        <p>Keelson drafts the document in the format your contract requires — every line traceable back to the photo and note it came from. Nothing invented.</p>
+        <p>Keelson drafts the document in the format your contract requires — every line traceable back to the evidence it came from. Nothing invented.</p>
       </div>
       <div class="step reveal">
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
@@ -370,7 +377,9 @@
       <div class="doc-pill"><b>OQE / QA inspection packages</b></div>
       <div class="doc-pill"><b>Test &amp; inspection plans</b></div>
       <div class="doc-pill"><b>Daily production reports</b></div>
+      <div class="doc-pill custom"><b>+ Your own formats</b></div>
     </div>
+    <p class="docs-note reveal">Every output is matched to your customer's spec, and the formatting is configurable. Need a document for a situation that isn't on this list? Keelson builds a <b>general, tailored format</b> that fits how your yard actually works.</p>
   </div>
 </section>
 
