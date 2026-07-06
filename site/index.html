@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Keelson — Inspection &amp; compliance documentation for ship repair</title>
+<meta name="description" content="Keelson turns field evidence into audit-ready documentation — inside your own secure environment. Built for the U.S. private ship-repair industrial base." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0A0E13; --ink-2:#0F151C; --surface:#141C26; --surface-2:#1B2530;
+    --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
+    --haze:#8C9AAA; --haze-2:#5E6A78; --paper:#ECF1F6;
+    --signal:#34D8C4; --signal-deep:#123F39; --caution:#F2A33C;
+    --doc:#F7F5EF; --doc-ink:#1A2230; --doc-haze:#5b6573;
+    --maxw:1140px;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
+    --disp:'Archivo','Inter',-apple-system,sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--ink);color:var(--paper);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+  .mono{font-family:var(--mono)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:8px}
+  .eyebrow::before{content:"";width:18px;height:1px;background:var(--signal);display:inline-block}
+  h1,h2,h3{font-family:var(--disp);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+  section{position:relative}
+  .sec-pad{padding:96px 0}
+  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:15px;padding:13px 22px;border-radius:8px;transition:.18s;cursor:pointer;border:1px solid transparent}
+  .btn-primary{background:var(--signal);color:#04201c}
+  .btn-primary:hover{background:#54e6d4;transform:translateY(-1px)}
+  .btn-ghost{background:transparent;color:var(--paper);border-color:var(--line)}
+  .btn-ghost:hover{border-color:var(--signal);color:var(--signal)}
+  .arrow{transition:transform .18s}
+  .btn:hover .arrow{transform:translateX(3px)}
+
+  /* blueprint grid bg */
+  .grid-bg{position:absolute;inset:0;background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%);pointer-events:none}
+
+  /* NAV */
+  nav{position:sticky;top:0;z-index:50;background:rgba(10,14,19,.72);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);transition:background .3s,box-shadow .3s,border-color .3s}
+  nav.scrolled{background:rgba(8,11,16,.9);box-shadow:0 10px 34px -16px rgba(0,0,0,.7);border-bottom-color:rgba(255,255,255,.13)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
+  .brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.01em}
+  .mark{width:30px;height:30px;border-radius:7px;border:1px solid var(--signal);background:var(--signal-deep);display:grid;place-items:center;color:var(--signal)}
+  .mark svg{width:17px;height:17px}
+  .nav-links{display:flex;align-items:center;gap:30px}
+  .nav-links a{font-size:14px;color:var(--haze);transition:.15s}
+  .nav-links a:hover{color:var(--paper)}
+  .nav-cta{display:flex;align-items:center;gap:14px}
+  .menu-btn{display:none;background:none;border:0;color:var(--paper);cursor:pointer}
+  .mobile-panel{display:none;border-bottom:1px solid var(--line);background:var(--ink-2)}
+  .mobile-panel a{display:block;padding:13px 24px;color:var(--haze);border-top:1px solid var(--line-2);font-size:15px}
+
+  /* HERO */
+  .hero{padding:74px 0 86px;position:relative;overflow:hidden}
+  .hero-grid{display:grid;grid-template-columns:1.04fr .96fr;gap:54px;align-items:center}
+  .hero h1{font-size:55px;margin:20px 0 18px}
+  .hero h1 .hl{color:var(--signal)}
+  .hero p.lede{font-size:19px;color:var(--haze);max-width:30em}
+  .hero-cta{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .trust-row{display:flex;gap:22px;margin-top:30px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--haze-2);letter-spacing:.03em}
+  .trust-row span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--signal)}
+
+  /* transform panel (signature) */
+  .panel{background:linear-gradient(180deg,var(--surface),var(--ink-2));border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;box-shadow:0 30px 70px -30px rgba(0,0,0,.7)}
+  .panel-label{position:absolute;top:-10px;left:18px;background:var(--ink);padding:0 9px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--haze-2);text-transform:uppercase}
+  .xform{display:grid;grid-template-columns:1fr auto 1.12fr;gap:14px;align-items:center}
+  .ev-col .ev-h,.doc .doc-h{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--haze-2);margin-bottom:9px}
+  .photos{display:flex;gap:7px;margin-bottom:10px}
+  .photo{flex:1;height:48px;border-radius:6px;border:1px solid var(--line);background:linear-gradient(135deg,#3a4654,#1d2630);position:relative;overflow:hidden}
+  .photo::after{content:attr(data-c);position:absolute;left:4px;bottom:3px;font-family:var(--mono);font-size:7px;color:rgba(255,255,255,.5)}
+  .photo::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.12),transparent 60%)}
+  .notes{font-family:var(--mono);font-size:11px;color:var(--haze);background:rgba(0,0,0,.25);border:1px solid var(--line-2);border-radius:7px;padding:9px;line-height:1.5}
+  .mic{display:inline-flex;align-items:center;gap:5px;margin-top:9px;font-family:var(--mono);font-size:9px;color:var(--signal);letter-spacing:.06em}
+  .xarrow{display:grid;place-items:center;color:var(--signal)}
+  .xarrow div{font-family:var(--mono);font-size:8px;color:var(--haze-2);margin-top:5px;letter-spacing:.1em;writing-mode:vertical-rl;text-orientation:mixed}
+  .doc{background:var(--doc);color:var(--doc-ink);border-radius:9px;padding:13px;box-shadow:0 16px 36px -14px rgba(52,216,196,.25)}
+  .doc .doc-h{color:var(--doc-haze)}
+  .doc-title{font-family:var(--disp);font-weight:700;font-size:13px;line-height:1.2;margin-bottom:8px}
+  .doc-meta{display:flex;gap:10px;font-family:var(--mono);font-size:8.5px;color:var(--doc-haze);border-top:1px solid #e2ddd0;border-bottom:1px solid #e2ddd0;padding:6px 0;margin-bottom:9px;flex-wrap:wrap}
+  .doc-body{font-size:10px;color:#3c4654;line-height:1.5}
+  .doc-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;background:#ece8dd;color:#5b6573;border-radius:4px;padding:2px 6px;margin:8px 5px 0 0}
+  .doc-verify{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-family:var(--mono);font-size:9px;color:#0f7a64;font-weight:500}
+
+  /* SECTION HEADERS */
+  .sec-head{max-width:680px;margin-bottom:48px}
+  .sec-head h2{font-size:38px;margin:16px 0 14px}
+  .sec-head p{color:var(--haze);font-size:17px}
+  .center{margin-left:auto;margin-right:auto;text-align:center}
+
+  /* PROBLEM */
+  .problem{background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:26px}
+  .stat .num{font-family:var(--disp);font-weight:800;font-size:40px;letter-spacing:-.03em;color:var(--paper)}
+  .stat .num small{color:var(--signal);font-size:26px}
+  .stat .lbl{color:var(--haze);font-size:14.5px;margin-top:8px}
+  .stat .src{font-family:var(--mono);font-size:10px;color:var(--haze-2);margin-top:14px;letter-spacing:.04em}
+
+  /* HOW */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .step{position:relative;padding-top:22px}
+  .step .sn{font-family:var(--mono);font-size:12px;color:var(--signal);letter-spacing:.1em}
+  .step h3{font-size:21px;margin:14px 0 9px}
+  .step p{color:var(--haze);font-size:15px}
+  .step .ic{width:42px;height:42px;border-radius:10px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--signal);margin-bottom:4px}
+  .step .ic svg{width:21px;height:21px}
+  .step-line{position:absolute;top:43px;left:60px;right:-10px;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+  .docs-out{display:flex;gap:12px;flex-wrap:wrap;margin-top:42px}
+  .doc-pill{font-family:var(--mono);font-size:12.5px;color:var(--haze);border:1px solid var(--line);border-radius:30px;padding:9px 16px;background:var(--surface)}
+  .doc-pill b{color:var(--paper);font-weight:500}
+
+  /* SECURITY */
+  .security{background:var(--ink-2);border-top:1px solid var(--line)}
+  .sec-cols{display:grid;grid-template-columns:.9fr 1.1fr;gap:54px;align-items:start}
+  .sec-feature{display:flex;gap:15px;padding:20px 0;border-top:1px solid var(--line)}
+  .sec-feature:last-child{border-bottom:1px solid var(--line)}
+  .sec-feature .ic{flex:none;width:38px;height:38px;border-radius:9px;background:var(--signal-deep);border:1px solid rgba(52,216,196,.3);display:grid;place-items:center;color:var(--signal)}
+  .sec-feature .ic svg{width:19px;height:19px}
+  .sec-feature h4{font-family:var(--disp);font-weight:700;font-size:16px;margin-bottom:4px}
+  .sec-feature p{color:var(--haze);font-size:14px}
+  .deploy-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px;position:sticky;top:88px}
+  .deploy-card .ttl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--haze-2);margin-bottom:18px}
+  .boundary{border:1px dashed rgba(52,216,196,.4);border-radius:11px;padding:16px;background:rgba(52,216,196,.04);position:relative;margin-bottom:16px}
+  .boundary .btag{position:absolute;top:-9px;left:14px;background:var(--surface);padding:0 8px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--signal);text-transform:uppercase}
+  .b-row{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;color:var(--paper)}
+  .b-row .bi{width:24px;height:24px;border-radius:6px;background:var(--surface-2);display:grid;place-items:center;color:var(--signal);flex:none}
+  .b-row .bi svg{width:13px;height:13px}
+  .b-out{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--haze-2);padding-top:6px}
+  .b-out .x{color:#c25b5b}
+  .claim{font-family:var(--mono);font-size:11px;color:var(--haze);line-height:1.7;border-left:2px solid var(--signal);padding-left:14px;margin-top:4px}
+
+  /* ROADMAP */
+  .road-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  .mod{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:24px;transition:.18s}
+  .mod:hover{border-color:rgba(52,216,196,.4);transform:translateY(-2px)}
+  .mod .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:14px}
+  .tag-live{background:var(--signal-deep);color:var(--signal);border:1px solid rgba(52,216,196,.3)}
+  .tag-next{background:rgba(242,163,60,.12);color:var(--caution);border:1px solid rgba(242,163,60,.25)}
+  .tag-later{background:var(--surface-2);color:var(--haze);border:1px solid var(--line)}
+  .mod h3{font-size:18px;margin-bottom:8px}
+  .mod p{color:var(--haze);font-size:14px}
+  .modular-note{font-family:var(--mono);font-size:12.5px;color:var(--haze);text-align:center;margin-top:34px;letter-spacing:.02em}
+  .modular-note b{color:var(--signal);font-weight:500}
+
+  /* MISSION */
+  .mission{background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .mission-in{max-width:780px}
+  .mission h2{font-size:32px;margin:16px 0 18px}
+  .mission p{color:var(--haze);font-size:17px;margin-bottom:16px}
+  .mission p b{color:var(--paper);font-weight:600}
+
+  /* CTA */
+  .cta{padding:104px 0;text-align:center;position:relative;overflow:hidden}
+  .cta h2{font-size:44px;margin-bottom:18px}
+  .cta p{color:var(--haze);font-size:18px;max-width:34em;margin:0 auto 32px}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+  /* FOOTER */
+  footer{border-top:1px solid var(--line);padding:46px 0 60px}
+  .foot-in{display:flex;justify-content:space-between;align-items:flex-start;gap:30px;flex-wrap:wrap}
+  .foot-disc{font-family:var(--mono);font-size:11px;color:var(--haze-2);max-width:46em;line-height:1.7;margin-top:22px}
+  .foot-links{display:flex;gap:24px;font-size:14px;color:var(--haze)}
+
+  /* reveal */
+  .reveal{opacity:0;transform:translateY(24px);filter:blur(5px);transition:opacity .7s cubic-bezier(.16,.84,.44,1),transform .7s cubic-bezier(.16,.84,.44,1),filter .7s ease;will-change:opacity,transform}
+  .reveal.in{opacity:1;transform:none;filter:none}
+  /* staggered cascades within card groups */
+  .stat-grid .reveal:nth-child(2),.steps .reveal:nth-child(2){transition-delay:.09s}
+  .stat-grid .reveal:nth-child(3),.steps .reveal:nth-child(3){transition-delay:.18s}
+  .road-grid .reveal:nth-child(2),.road-grid .reveal:nth-child(5){transition-delay:.08s}
+  .road-grid .reveal:nth-child(3),.road-grid .reveal:nth-child(6){transition-delay:.16s}
+  .sec-feature.reveal:nth-child(2){transition-delay:.07s}
+  .sec-feature.reveal:nth-child(3){transition-delay:.14s}
+  .sec-feature.reveal:nth-child(4){transition-delay:.21s}
+
+  @media (max-width:920px){
+    .hero-grid,.sec-cols{grid-template-columns:1fr;gap:40px}
+    .deploy-card{position:static}
+    .stat-grid,.steps,.road-grid{grid-template-columns:1fr}
+    .step-line{display:none}
+    .hero h1{font-size:42px}
+    .nav-links{display:none}
+    .menu-btn{display:block}
+    .sec-head h2,.cta h2{font-size:31px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .reveal{opacity:1;transform:none;filter:none;transition:none}
+    html{scroll-behavior:auto}
+    .grid-bg{transform:none!important}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="wrap nav-in">
+    <a href="#top" class="brand">
+      <span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M12 8a6 6 0 0 0 6 6M12 8a6 6 0 0 1-6 6"/><circle cx="12" cy="5" r="2.4"/></svg></span>
+      Keelson
+    </a>
+    <div class="nav-links">
+      <a href="#problem">The problem</a>
+      <a href="#how">How it works</a>
+      <a href="#security">Security</a>
+      <a href="#roadmap">Roadmap</a>
+    </div>
+    <div class="nav-cta">
+      <a href="#contact" class="btn btn-ghost" style="padding:10px 16px">Book a pilot</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
+    </div>
+  </div>
+  <div class="mobile-panel" id="mobilePanel">
+    <a href="#problem">The problem</a>
+    <a href="#how">How it works</a>
+    <a href="#security">Security</a>
+    <a href="#roadmap">Roadmap</a>
+    <a href="#contact">Book a pilot</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="grid-bg" id="heroGrid"></div>
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">For the U.S. private ship-repair industrial base</span>
+      <h1>Field evidence in.<br><span class="hl">Audit-ready documentation</span> out.</h1>
+      <p class="lede">Keelson turns deck photos and rough field notes into formatted, verifiable repair documentation in seconds — and runs entirely inside your own secure environment, so controlled information never leaves your boundary.</p>
+      <div class="hero-cta">
+        <a href="#" class="btn btn-primary js-demo-link">Launch the demo <span class="arrow">→</span></a>
+        <a href="#how" class="btn btn-ghost">See how it works</a>
+      </div>
+      <div class="trust-row">
+        <span><span class="dot"></span>Runs in your environment</span>
+        <span><span class="dot"></span>CUI never leaves your boundary</span>
+        <span><span class="dot"></span>Human-verified OQE</span>
+      </div>
+    </div>
+
+    <!-- signature transform -->
+    <div class="panel reveal">
+      <span class="panel-label">Condition found · MMR2 · Fr 142–148</span>
+      <div class="xform">
+        <div class="ev-col">
+          <div class="ev-h">Field evidence</div>
+          <div class="photos">
+            <div class="photo" data-c="FR144"></div>
+            <div class="photo" data-c="UT .281"></div>
+            <div class="photo" data-c="FR146"></div>
+          </div>
+          <div class="notes">heavy scale + pitting under deck plates, tank top bad ~fr144-146, UT shots .280 (nominal .375), water intrusion, coating gone…</div>
+          <div class="mic"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" stroke-width="2" fill="none"/></svg>DICTATED ON DECK</div>
+        </div>
+        <div class="xarrow">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          <div>KEELSON</div>
+        </div>
+        <div class="doc">
+          <div class="doc-h">Condition Found Report</div>
+          <div class="doc-title">Accelerated plate wastage — MMR2 tank top</div>
+          <div class="doc-meta"><span>CFR-26-3-0147</span><span>HULL-072</span><span>AVAIL 26-3</span></div>
+          <div class="doc-body">Upon removal of deck plating, accelerated corrosion and through-scale pitting identified, Fr 142–148. UT minimum 0.281″ vs 0.375″ nominal — below allowable in multiple locations…</div>
+          <div>
+            <span class="doc-chip">▣ #1 FR144</span>
+            <span class="doc-chip">▣ #2 UT</span>
+          </div>
+          <div class="doc-verify"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>VERIFIED · READY FOR QA SIGN-OFF</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PROBLEM -->
+<section class="problem sec-pad" id="problem">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">The documentation tax</span>
+      <h2>The paperwork is crushing a workforce that's disappearing.</h2>
+      <p>Private repair contractors owe their customers mountains of mandatory documentation — condition found reports, OQE packages, daily reports — at the exact moment their most experienced people are walking out the door.</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat reveal">
+        <div class="num">250<small>K</small></div>
+        <div class="lbl">Skilled-worker shortfall facing U.S. shipbuilding &amp; repair over the next decade.</div>
+        <div class="src">SOURCE · MCKINSEY / DOL</div>
+      </div>
+      <div class="stat reveal">
+        <div class="num">27<small>%</small></div>
+        <div class="lbl">Of the shipyard workforce is 55 or older — a wave of irreplaceable knowledge retiring now.</div>
+        <div class="src">SOURCE · DOL / NAVY</div>
+      </div>
+      <div class="stat reveal">
+        <div class="num">1<small>×</small></div>
+        <div class="lbl">Every hour your QA lead spends writing reports is an hour off a deck that's already short-handed — and late or wrong docs hold up payment and delay the ship.</div>
+        <div class="src">FIELD REALITY</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="sec-pad" id="how">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">How it works</span>
+      <h2>Capture the work. Keelson writes the record.</h2>
+      <p>Your crew already takes the photos and knows what they found. Keelson does the part they hate — turning it into the document your customer will accept.</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.2"/></svg></div>
+        <div class="step-line"></div>
+        <div class="sn">01 — CAPTURE</div>
+        <h3>From the deck</h3>
+        <p>Phone photos and a few dictated notes — frame stations, UT readings, what the crew found. Rough is fine.</p>
+      </div>
+      <div class="step reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-3.8 3 1.1 4.8L12 14.5 8.2 16.8 9.3 12 5.5 9l4.6-1.4z"/></svg></div>
+        <div class="step-line"></div>
+        <div class="sn">02 — GENERATE</div>
+        <h3>Audit-ready draft</h3>
+        <p>Keelson drafts the document in the format your contract requires — every line traceable back to the photo and note it came from. Nothing invented.</p>
+      </div>
+      <div class="step reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
+        <div class="sn">03 — VERIFY &amp; SIGN</div>
+        <h3>Human sign-off</h3>
+        <p>Your QA lead checks each section against the evidence and signs off — then exports a submission-ready package in the format your customer's system expects. The expert verifies instead of writing from scratch.</p>
+      </div>
+    </div>
+    <div class="docs-out reveal">
+      <div class="doc-pill"><b>Condition Found Reports</b> · growth work</div>
+      <div class="doc-pill"><b>OQE / QA inspection packages</b></div>
+      <div class="doc-pill"><b>Test &amp; inspection plans</b></div>
+      <div class="doc-pill"><b>Daily production reports</b></div>
+    </div>
+  </div>
+</section>
+
+<!-- SECURITY -->
+<section class="security sec-pad" id="security">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <span class="eyebrow">Security &amp; deployment</span>
+      <h2>Built for controlled information from day one.</h2>
+      <p>Most software can't legally touch this work. Keelson is designed so the controlled information never leaves the environment you already trust — which is why adoption doesn't require a security exception.</p>
+    </div>
+    <div class="sec-cols">
+      <div>
+        <div class="sec-feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div><h4>Your CUI never leaves your boundary</h4><p>Keelson deploys as software inside your environment. You remain the custodian of all controlled information — we never store, hold, or move it.</p></div>
+        </div>
+        <div class="sec-feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
+          <div><h4>The AI runs inside the boundary too</h4><p>No prompts, photos, or notes are sent to outside clouds. Inference runs within your environment — on-prem or your authorized GovCloud — so nothing escapes.</p></div>
+        </div>
+        <div class="sec-feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div><h4>Supports your CMMC boundary</h4><p>Designed to sit cleanly inside a Level 2 / NIST SP 800-171 scope with a clear customer responsibility matrix. <span style="color:var(--haze-2)">Keelson is a tool, not a certification.</span></p></div>
+        </div>
+        <div class="sec-feature reveal">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg></div>
+          <div><h4>Every line traces to its evidence</h4><p>Each statement links back to the photo and field note behind it. Auditable end to end — the opposite of a black box.</p></div>
+        </div>
+      </div>
+
+      <div class="deploy-card reveal">
+        <div class="ttl">Deployment model</div>
+        <div class="boundary">
+          <span class="btag">Your environment</span>
+          <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg></span> Keelson app (on-prem or your GovCloud)</div>
+          <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg></span> AI model — runs in-boundary</div>
+          <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span> Your CUI, photos &amp; reports — stay here</div>
+        </div>
+        <div class="b-out"><span class="x">✕</span> No CUI sent to Keelson or any outside cloud</div>
+        <div class="claim" style="margin-top:18px">You own the controlled information.<br>Keelson is the software that runs where it already lives.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="sec-pad" id="roadmap">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="eyebrow">Roadmap &amp; modularity</span>
+      <h2>One secure core. Modules that snap on.</h2>
+      <p>Documentation is the wedge. Every module shares the same in-boundary engine and evidence trail — so each one compounds the last.</p>
+    </div>
+    <div class="road-grid">
+      <div class="mod reveal"><span class="tag tag-live">Pilot</span><h3>Repair documentation</h3><p>Condition found reports, OQE packages, and daily reports from field evidence. The wedge that's live today.</p></div>
+      <div class="mod reveal"><span class="tag tag-live">Pilot</span><h3>Evidence &amp; audit trail</h3><p>Every document line linked to its source photo and note, with verification and sign-off built in.</p></div>
+      <div class="mod reveal"><span class="tag tag-next">Next</span><h3>Knowledge capture</h3><p>Turn a retiring master tradesperson's process into reusable, searchable records before the knowledge walks out the door.</p></div>
+      <div class="mod reveal"><span class="tag tag-next">Next</span><h3>Growth-work tracking</h3><p>From condition found to priced change order — capture billable growth work faster and stop leaving revenue on the deck.</p></div>
+      <div class="mod reveal"><span class="tag tag-later">Later</span><h3>QA / inspection workflows</h3><p>Structured inspection checklists and OQE assembly across trades, tied to the same evidence core.</p></div>
+      <div class="mod reveal"><span class="tag tag-later">Later</span><h3>Multi-yard &amp; integrations</h3><p>Roll documentation across availabilities and yards, and connect to the ERP and scheduling systems you already run.</p></div>
+    </div>
+    <p class="modular-note reveal">Same secure core · same evidence trail · <b>your data never leaves your environment</b></p>
+  </div>
+</section>
+
+<!-- MISSION -->
+<section class="mission sec-pad">
+  <div class="wrap mission-in reveal">
+    <span class="eyebrow">Why Keelson</span>
+    <h2>Built from inside the yards, not from a thousand miles away.</h2>
+    <p>Ship repair runs on a private industrial base that's buried in paperwork and losing its experts faster than it can replace them. Off-the-shelf AI can't help, because it can't be trusted with controlled information.</p>
+    <p>Keelson is built by someone who knows this world from the deckplates up — hardware, inspection, and the Hampton Roads defense community — with one focus: <b>let a leaner, greener workforce produce documentation that passes the first time, without ever putting controlled information at risk.</b></p>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="contact">
+  <div class="grid-bg"></div>
+  <div class="wrap reveal">
+    <span class="eyebrow center" style="justify-content:center">Limited pilot cohort</span>
+    <h2>Put a working draft in front of your QA lead.</h2>
+    <p>We're partnering with a small number of Hampton Roads repair contractors to pilot Keelson on real availabilities. See it on your documents, in your environment.</p>
+    <div class="cta-row">
+      <a href="mailto:hello@keelson.example?subject=Keelson%20pilot%20inquiry" class="btn btn-primary">Book a pilot <span class="arrow">→</span></a>
+      <a href="#" class="btn btn-ghost js-demo-link">Launch the demo</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-in">
+      <a href="#top" class="brand"><span class="mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M12 8a6 6 0 0 0 6 6M12 8a6 6 0 0 1-6 6"/><circle cx="12" cy="5" r="2.4"/></svg></span> Keelson</a>
+      <div class="foot-links">
+        <a href="#how">How it works</a>
+        <a href="#security">Security</a>
+        <a href="#roadmap">Roadmap</a>
+        <a href="#contact">Pilot</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </div>
+    </div>
+    <p class="foot-disc">Keelson deploys within your environment; you remain the custodian of all controlled unclassified information. Keelson does not store, process, or transmit your CUI on its own systems, and is not a certification or a substitute for your own CMMC / NIST SP 800-171 program. © 2026 Keelson.</p>
+  </div>
+</footer>
+
+<script>
+  // One place to set your deployed demo URL:
+  var DEMO_URL = "#"; // ← replace "#" with your live demo link (e.g. https://keelson-demo.vercel.app)
+  document.querySelectorAll(".js-demo-link").forEach(function(a){ a.setAttribute("href", DEMO_URL); });
+
+  // Mobile menu
+  var mb = document.getElementById("menuBtn"), mp = document.getElementById("mobilePanel");
+  mb && mb.addEventListener("click", function(){ mp.style.display = mp.style.display === "block" ? "none" : "block"; });
+  mp && mp.querySelectorAll("a").forEach(function(a){ a.addEventListener("click", function(){ mp.style.display = "none"; }); });
+
+  // Scroll reveal
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+  }, { threshold:.12 });
+  document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+
+  // Hero parallax + nav elevation (respects reduced motion)
+  var heroGrid = document.getElementById("heroGrid");
+  var navEl = document.querySelector("nav");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var ticking = false;
+  function onScroll(){
+    var y = window.pageYOffset || 0;
+    if(navEl){ navEl.classList.toggle("scrolled", y > 12); }
+    if(heroGrid && !reduceMotion && y < 900){ heroGrid.style.transform = "translateY(" + (y * 0.18) + "px)"; }
+    ticking = false;
+  }
+  window.addEventListener("scroll", function(){
+    if(!ticking){ window.requestAnimationFrame(onScroll); ticking = true; }
+  }, { passive:true });
+  onScroll();
+</script>
+</body>
+</html>
