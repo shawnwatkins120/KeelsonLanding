@@ -4,12 +4,20 @@ import {
   Sparkles, Check, AlertTriangle, Download, ChevronRight, ChevronLeft,
   Lock, Clock, PenLine, Menu, X, Gauge, CircleCheck, Server, MapPin, Printer
 } from "lucide-react";
+import { cn } from "./lib/cn";
+import { Button } from "./components/Button";
+import { Card } from "./components/Card";
+import { SectionLabel } from "./components/SectionLabel";
+import { Stat } from "./components/Stat";
+import { Field, Textarea } from "./components/Field";
+import { Pill, severityTone } from "./components/Pill";
 
 // ---------------------------------------------------------------------------
 // Keelson — AI-assisted documentation for private ship-repair contractors.
-// Demo build. Shares the landing page's defense-tech vibe.
-// Features: capture -> live AI draft (with offline fallback) -> inline edit
-// -> verify -> QA sign-off -> export. Placeholder name; rename freely.
+// Demo build. Shares the landing page's Minimalist Modern design system
+// (electric-blue accent, Fraunces/Inter/JetBrains Mono, light workspace +
+// dark sidebar). Capture -> live AI draft (offline fallback) -> inline edit
+// -> verify -> QA sign-off -> export.
 // ---------------------------------------------------------------------------
 
 const SAMPLE_CONTEXT = {
@@ -118,16 +126,6 @@ const LIBRARY = [
   { reportNumber: "DPR-26-3-0729", summary: "Daily production — shaft alley", type: "daily", date: "3 days ago", status: "Submitted", severity: "Minor", sections: FALLBACK.daily.sections },
 ];
 
-const sevColor = (s) =>
-  s === "Major" ? "text-red-300 bg-slate-800 border-red-900"
-  : s === "Moderate" ? "text-amber-300 bg-slate-800 border-amber-900"
-  : "text-slate-400 bg-slate-800 border-slate-700";
-
-const sevColorDoc = (s) =>
-  s === "Major" ? "text-red-700 bg-red-100 border-red-200"
-  : s === "Moderate" ? "text-amber-700 bg-amber-100 border-amber-200"
-  : "text-slate-600 bg-slate-100 border-slate-200";
-
 const typeLabel = (t) => REPORT_TYPES.find((r) => r.id === t)?.title || "Report";
 const effContent = (edits, key, fallback) => (edits && edits[key] != null ? edits[key] : fallback);
 const nowStamp = () => {
@@ -138,14 +136,14 @@ const nowStamp = () => {
 
 function PhotoCard({ p, small }) {
   return (
-    <div className={`shrink-0 ${small ? "w-28" : "w-40"} rounded-lg overflow-hidden border border-slate-700 bg-slate-800`}>
-      <div className={`${small ? "h-20" : "h-28"} bg-gradient-to-br from-slate-600 via-slate-700 to-slate-900 relative flex items-center justify-center`}>
-        <Camera className="text-slate-400" size={small ? 18 : 24} />
-        <span className="absolute top-1 left-1 ff-mono text-[9px] text-white bg-black/50 px-1 rounded">#{p.id}</span>
+    <div className={cn("shrink-0 rounded-lg overflow-hidden border border-border bg-card shadow-sm", small ? "w-28" : "w-40")}>
+      <div className={cn("relative flex items-center justify-center bg-[linear-gradient(135deg,#EEF2F7,#D9E0EA)]", small ? "h-20" : "h-28")}>
+        <Camera className="text-accent/50" size={small ? 18 : 24} />
+        <span className="absolute top-1 left-1 font-mono text-[9px] text-white bg-fg/60 px-1 rounded">#{p.id}</span>
       </div>
       <div className="p-1.5">
-        <p className="text-[10px] leading-tight text-slate-300 font-medium line-clamp-2">{p.cap}</p>
-        <p className="ff-mono text-[9px] text-slate-500 mt-0.5">{p.tag}</p>
+        <p className="text-[10px] leading-tight text-fg font-medium line-clamp-2">{p.cap}</p>
+        <p className="font-mono text-[9px] text-muted-fg mt-0.5">{p.tag}</p>
       </div>
     </div>
   );
@@ -164,8 +162,8 @@ export default function App() {
   const [offline, setOffline] = useState(false);
   const [verified, setVerified] = useState({});
   const [genSeconds, setGenSeconds] = useState(null);
-  const [edits, setEdits] = useState({});       // inline edits, keyed by section
-  const [signOff, setSignOff] = useState(null);  // { name, date }
+  const [edits, setEdits] = useState({});
+  const [signOff, setSignOff] = useState(null);
   const [printing, setPrinting] = useState(false);
   const [viewerDoc, setViewerDoc] = useState(null);
 
@@ -210,7 +208,7 @@ Use correct terminology (UT thickness, NSTM, SSPC, growth work). Be specific to 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "claude-sonnet-4-6",
+          model: "claude-sonnet-5",
           max_tokens: 1000,
           messages: [{ role: "user", content: prompt }],
         }),
@@ -238,63 +236,55 @@ Use correct terminology (UT thickness, NSTM, SSPC, growth work). Be specific to 
   const allVerified = totalSections > 0 && verifiedCount === totalSections;
 
   return (
-    <div className="ff-body min-h-screen bg-slate-950 text-slate-200 flex">
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
-        .ff-display{font-family:'Archivo',ui-sans-serif,system-ui,sans-serif}
-        .ff-body{font-family:'Inter',ui-sans-serif,system-ui,sans-serif}
-        .ff-mono{font-family:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace}
-        .kbp{background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:46px 46px}
-        .kglow{box-shadow:0 24px 70px -30px rgba(52,216,196,.30)}
-        .tnum{font-variant-numeric:tabular-nums}
-        @media (prefers-reduced-motion:reduce){
-          .animate-rise-in{animation:none!important}
-        }
-        @media print {
-          body * { visibility: hidden !important; }
-          .print-page, .print-page * { visibility: visible !important; }
-          .print-page { position: absolute !important; left: 0; top: 0; width: 100%; margin: 0 !important; box-shadow: none !important; border: 0 !important; }
-          .no-print { display: none !important; }
-        }
-      `}</style>
-
-      <aside className="hidden md:flex w-60 shrink-0 flex-col bg-slate-950 border-r border-slate-800">
+    <div className="min-h-screen bg-bg text-fg flex">
+      {/* SIDEBAR (inverted dark) */}
+      <aside className="hidden md:flex w-60 shrink-0 flex-col bg-fg text-white">
         <Brand />
-        <nav className="flex-1 px-3 space-y-1">
-          {nav.map((n) => (
-            <button key={n.id} onClick={() => go(n.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm transition-colors border-l-2 ${
-                view === n.id ? "bg-slate-900 text-white border-teal-400" : "border-transparent text-slate-400 hover:bg-slate-900 hover:text-white"
-              }`}>
-              <n.icon size={18} /> {n.label}
-            </button>
-          ))}
+        <nav className="flex-1 px-3 space-y-1 mt-2">
+          {nav.map((n) => {
+            const active = view === n.id;
+            return (
+              <button key={n.id} onClick={() => go(n.id)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                  active ? "bg-white/10 text-white font-medium" : "text-white/55 hover:bg-white/5 hover:text-white"
+                )}>
+                <span className={cn(active ? "text-accent-2" : "text-white/45")}><n.icon size={18} /></span>
+                {n.label}
+              </button>
+            );
+          })}
         </nav>
         <DataResidency />
       </aside>
 
-      <div className="md:hidden fixed top-0 inset-x-0 z-20 bg-slate-950 text-white flex items-center justify-between px-4 h-14 border-b border-slate-800">
-        <div className="flex items-center gap-2"><Anchor size={18} className="text-teal-400" /><span className="ff-display font-extrabold tracking-tight">Keelson</span></div>
+      {/* MOBILE TOP BAR */}
+      <div className="md:hidden fixed top-0 inset-x-0 z-20 bg-fg text-white flex items-center justify-between px-4 h-14">
+        <div className="flex items-center gap-2">
+          <span className="w-7 h-7 rounded-md flex items-center justify-center text-white bg-[linear-gradient(135deg,var(--accent),var(--accent-2))]"><Anchor size={16} /></span>
+          <span className="font-display text-lg">Keelson</span>
+        </div>
         <button onClick={() => setMobileNav((v) => !v)} aria-label="Menu">{mobileNav ? <X size={22} /> : <Menu size={22} />}</button>
       </div>
       {mobileNav && (
-        <div className="md:hidden fixed top-14 inset-x-0 z-20 bg-slate-900 text-slate-200 px-3 py-2 space-y-1 shadow-lg border-b border-slate-800">
+        <div className="md:hidden fixed top-14 inset-x-0 z-20 bg-fg text-white px-3 py-2 space-y-1 shadow-lg">
           {nav.map((n) => (
             <button key={n.id} onClick={() => go(n.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm ${view === n.id ? "bg-slate-800 text-white" : "text-slate-300"}`}>
+              className={cn("w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm", view === n.id ? "bg-white/10 text-white" : "text-white/70")}>
               <n.icon size={18} /> {n.label}
             </button>
           ))}
         </div>
       )}
 
+      {/* MAIN */}
       <main className="flex-1 min-w-0 pt-14 md:pt-0">
-        <header className="hidden md:flex items-center justify-between px-8 h-16 bg-slate-950 border-b border-slate-800">
+        <header className="hidden md:flex items-center justify-between px-8 h-16 bg-card border-b border-border">
           <div>
-            <p className="ff-mono text-xs text-slate-500 uppercase tracking-widest">{ctx.availability}</p>
-            <h1 className="ff-display text-lg font-extrabold tracking-tight text-white -mt-0.5">{ctx.ship}</h1>
+            <p className="font-mono text-xs text-muted-fg uppercase tracking-widest">{ctx.availability}</p>
+            <h1 className="font-display text-lg text-fg -mt-0.5">{ctx.ship}</h1>
           </div>
-          <span className="flex items-center gap-2 text-xs font-medium text-teal-300 bg-teal-900 border border-teal-800 px-3 py-1.5 rounded-full">
+          <span className="flex items-center gap-2 text-xs font-medium text-accent bg-accent/[0.08] border border-accent/25 px-3 py-1.5 rounded-full">
             <Lock size={13} /> CUI-ready · data stays in your tenant
           </span>
         </header>
@@ -327,13 +317,13 @@ Use correct terminology (UT thickness, NSTM, SSPC, growth work). Be specific to 
 
 function Brand() {
   return (
-    <div className="px-5 py-5 flex items-center gap-2.5 border-b border-slate-800">
-      <div className="w-9 h-9 rounded-md bg-teal-900 border border-teal-800 flex items-center justify-center">
-        <Anchor size={20} className="text-teal-400" />
+    <div className="px-5 py-5 flex items-center gap-2.5 border-b border-white/10">
+      <div className="w-9 h-9 rounded-lg flex items-center justify-center text-white shadow-accent bg-[linear-gradient(135deg,var(--accent),var(--accent-2))]">
+        <Anchor size={20} />
       </div>
       <div className="leading-none">
-        <p className="text-white ff-display font-extrabold tracking-tight text-lg">Keelson</p>
-        <p className="ff-mono text-[10px] text-slate-500 mt-1">ship-repair docs</p>
+        <p className="text-white font-display text-lg">Keelson</p>
+        <p className="font-mono text-[10px] text-white/45 mt-1">ship-repair docs</p>
       </div>
     </div>
   );
@@ -341,19 +331,9 @@ function Brand() {
 
 function DataResidency() {
   return (
-    <div className="m-3 p-3 rounded-lg bg-slate-900 border border-slate-800">
-      <div className="flex items-center gap-2 text-teal-300 text-xs font-semibold"><Server size={14} /> Your infrastructure</div>
-      <p className="text-[11px] text-slate-400 mt-1 leading-snug">Runs in your tenant. No data leaves your environment. CUI / ITAR handling.</p>
-    </div>
-  );
-}
-
-function Stat({ icon: Icon, value, label, accent, delay = 0 }) {
-  return (
-    <div className="bg-slate-900 rounded-xl border border-slate-800 p-4 animate-rise-in" style={{ animationDelay: `${delay}ms` }}>
-      <div className={`w-9 h-9 rounded-lg flex items-center justify-center mb-3 ${accent}`}><Icon size={18} /></div>
-      <p className="ff-display text-2xl font-extrabold tracking-tight text-white tnum">{value}</p>
-      <p className="text-xs text-slate-400 mt-0.5">{label}</p>
+    <div className="m-3 p-3 rounded-lg bg-white/5 border border-white/10">
+      <div className="flex items-center gap-2 text-accent-2 text-xs font-semibold"><Server size={14} /> Your infrastructure</div>
+      <p className="text-[11px] text-white/55 mt-1 leading-snug">Runs in your tenant. No data leaves your environment. CUI / ITAR handling.</p>
     </div>
   );
 }
@@ -362,48 +342,46 @@ function Dashboard({ onNew, onOpen }) {
   return (
     <div className="space-y-6">
       <div className="relative">
-        <div className="kbp absolute -inset-x-8 -top-8 h-40 opacity-70 pointer-events-none"
+        <div className="blueprint absolute -inset-x-8 -top-8 h-40 opacity-70 pointer-events-none"
           style={{ maskImage: "radial-gradient(ellipse 60% 100% at 0% 0%, #000, transparent 72%)", WebkitMaskImage: "radial-gradient(ellipse 60% 100% at 0% 0%, #000, transparent 72%)" }} />
         <div className="relative flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
-            <span className="ff-mono text-xs tracking-widest uppercase text-teal-400">This availability</span>
-            <h2 className="ff-display text-2xl font-extrabold tracking-tight text-white mt-1">Documentation status</h2>
-            <p className="text-slate-400 text-sm mt-1">Where the current maintenance period stands.</p>
+            <SectionLabel>This availability</SectionLabel>
+            <h2 className="font-display text-[28px] text-fg mt-3">Documentation status</h2>
+            <p className="text-muted-fg text-sm mt-1">Where the current maintenance period stands.</p>
           </div>
-          <button onClick={onNew} className="inline-flex items-center gap-2 bg-teal-400 hover:bg-teal-300 text-slate-950 font-semibold text-sm px-4 py-2.5 rounded-lg transition-colors shrink-0">
-            <FilePlus2 size={17} /> New report
-          </button>
+          <Button onClick={onNew} className="shrink-0"><FilePlus2 size={17} /> New report</Button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <Stat icon={FileText} value="38" label="Documents this availability" accent="bg-slate-800 text-slate-300" delay={0} />
-        <Stat icon={Clock} value="29 hrs" label="Est. QA hours saved" accent="bg-teal-900 text-teal-300" delay={60} />
-        <Stat icon={AlertTriangle} value="3" label="Growth-work CFRs open" accent="bg-amber-900 text-amber-300" delay={120} />
-        <Stat icon={CircleCheck} value="91%" label="OQE first-pass accepted" accent="bg-emerald-900 text-emerald-300" delay={180} />
+        <Stat icon={FileText} value="38" label="Documents this availability" delay={0} />
+        <Stat icon={Clock} value="29 hrs" label="Est. QA hours saved" accent delay={60} />
+        <Stat icon={AlertTriangle} value="3" label="Growth-work CFRs open" delay={120} />
+        <Stat icon={CircleCheck} value="91%" label="OQE first-pass accepted" delay={180} />
       </div>
 
-      <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
-        <div className="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
-          <h3 className="ff-display font-bold text-white text-sm">Recent documents</h3>
-          <span className="text-xs text-slate-500 ff-mono">{SAMPLE_CONTEXT.ship}</span>
+      <Card className="overflow-hidden">
+        <div className="px-5 py-3.5 border-b border-border flex items-center justify-between">
+          <h3 className="font-semibold text-fg text-sm">Recent documents</h3>
+          <span className="text-xs text-muted-fg font-mono">{SAMPLE_CONTEXT.ship}</span>
         </div>
-        <ul className="divide-y divide-slate-800">
+        <ul className="divide-y divide-border">
           {LIBRARY.slice(0, 4).map((d) => (
             <li key={d.reportNumber}>
-              <button onClick={() => onOpen(d)} className="w-full text-left px-5 py-3.5 flex items-center gap-3 hover:bg-slate-800 transition-colors">
-                <span className={`ff-mono text-[10px] px-1.5 py-0.5 rounded border ${sevColor(d.severity)}`}>{d.severity}</span>
+              <button onClick={() => onOpen(d)} className="w-full text-left px-5 py-3.5 flex items-center gap-3 hover:bg-muted transition-colors">
+                <Pill tone={severityTone(d.severity)}>{d.severity}</Pill>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-sm font-medium text-slate-200 truncate">{d.summary}</span>
-                  <span className="block ff-mono text-xs text-slate-500">{d.reportNumber} · {typeLabel(d.type)}</span>
+                  <span className="block text-sm font-medium text-fg truncate">{d.summary}</span>
+                  <span className="block font-mono text-xs text-muted-fg">{d.reportNumber} · {typeLabel(d.type)}</span>
                 </span>
-                <span className="text-xs text-slate-500 hidden sm:block">{d.date}</span>
-                <ChevronRight size={16} className="text-slate-600" />
+                <span className="text-xs text-muted-fg hidden sm:block">{d.date}</span>
+                <ChevronRight size={16} className="text-muted-fg/60" />
               </button>
             </li>
           ))}
         </ul>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -424,70 +402,63 @@ function NewReport(props) {
 
       {step === 1 && (
         <div className="space-y-3">
-          <h2 className="ff-display text-xl font-extrabold tracking-tight text-white mb-1">What are you documenting?</h2>
-          <p className="text-slate-400 text-sm mb-4">Pick the document. The format follows what your customer expects to receive.</p>
+          <h2 className="font-display text-2xl text-fg mb-1">What are you documenting?</h2>
+          <p className="text-muted-fg text-sm mb-4">Pick the document. The format follows what your customer expects to receive.</p>
           {REPORT_TYPES.map((t) => (
-            <button key={t.id} onClick={() => { setReportType(t.id); setStep(2); }}
-              className="w-full text-left bg-slate-900 rounded-xl border border-slate-800 hover:border-teal-700 transition-all p-4 flex items-center gap-4 group">
-              <div className="w-11 h-11 rounded-lg bg-slate-800 group-hover:bg-teal-900 flex items-center justify-center shrink-0 transition-colors">
-                <t.icon size={20} className="text-slate-300 group-hover:text-teal-300" />
+            <Card as="button" hover key={t.id} onClick={() => { setReportType(t.id); setStep(2); }}
+              className="p-4 flex items-center gap-4 group">
+              <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0 text-accent-fg shadow-accent bg-[linear-gradient(135deg,var(--accent),var(--accent-2))]">
+                <t.icon size={20} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="font-semibold text-white">{t.title}</p>
-                  {t.hot && <span className="ff-mono text-[10px] font-medium text-amber-300 bg-amber-900 px-1.5 py-0.5 rounded">most common</span>}
+                  <p className="font-semibold text-fg">{t.title}</p>
+                  {t.hot && <Pill tone="accent">most common</Pill>}
                 </div>
-                <p className="text-sm text-slate-400 mt-0.5">{t.desc}</p>
+                <p className="text-sm text-muted-fg mt-0.5">{t.desc}</p>
               </div>
-              <ChevronRight className="text-slate-600 group-hover:text-teal-400" />
-            </button>
+              <ChevronRight className="text-muted-fg/50 group-hover:text-accent group-hover:translate-x-0.5 transition-all" />
+            </Card>
           ))}
         </div>
       )}
 
       {step === 2 && (
         <div className="space-y-5">
-          <div className="bg-slate-900 rounded-xl border border-slate-800 p-5">
-            <h3 className="ff-display font-bold text-white text-sm mb-3 flex items-center gap-2"><MapPin size={15} className="text-slate-500" /> Job context</h3>
+          <Card className="p-5">
+            <h3 className="font-semibold text-fg text-sm mb-3 flex items-center gap-2"><MapPin size={15} className="text-accent" /> Job context</h3>
             <div className="grid sm:grid-cols-2 gap-3">
               {[["ship", "Ship / Hull"], ["availability", "Availability"], ["workItem", "Work item"], ["location", "Location"], ["trade", "Trade"]].map(([k, label]) => (
-                <label key={k} className="block">
-                  <span className="ff-mono text-[11px] uppercase tracking-wide text-slate-500">{label}</span>
-                  <input value={ctx[k]} onChange={(e) => setCtx({ ...ctx, [k]: e.target.value })}
-                    className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-2.5 py-1.5 text-sm ff-mono text-slate-200 focus:border-teal-400 outline-none" />
-                </label>
+                <Field key={k} label={label} value={ctx[k]} onChange={(e) => setCtx({ ...ctx, [k]: e.target.value })} />
               ))}
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-slate-900 rounded-xl border border-slate-800 p-5">
+          <Card className="p-5">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="ff-display font-bold text-white text-sm flex items-center gap-2"><Camera size={15} className="text-slate-500" /> Photo evidence</h3>
-              <span className="text-xs text-slate-500 ff-mono">{SAMPLE_PHOTOS.length} from the deck</span>
+              <h3 className="font-semibold text-fg text-sm flex items-center gap-2"><Camera size={15} className="text-accent" /> Photo evidence</h3>
+              <span className="text-xs text-muted-fg font-mono">{SAMPLE_PHOTOS.length} from the deck</span>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-1">
               {SAMPLE_PHOTOS.map((p) => <PhotoCard key={p.id} p={p} />)}
-              <div className="shrink-0 w-40 h-[152px] rounded-lg border-2 border-dashed border-slate-700 flex flex-col items-center justify-center text-slate-500 text-xs gap-1">
+              <div className="shrink-0 w-40 h-[152px] rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center text-muted-fg text-xs gap-1">
                 <Camera size={20} /> Add photo
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="bg-slate-900 rounded-xl border border-slate-800 p-5">
+          <Card className="p-5">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="ff-display font-bold text-white text-sm flex items-center gap-2"><PenLine size={15} className="text-slate-500" /> Field notes</h3>
-              <span className="inline-flex items-center gap-1.5 text-xs text-teal-300 bg-teal-900 border border-teal-800 px-2 py-1 rounded-md"><Mic size={12} /> Dictated on deck</span>
+              <h3 className="font-semibold text-fg text-sm flex items-center gap-2"><PenLine size={15} className="text-accent" /> Field notes</h3>
+              <span className="inline-flex items-center gap-1.5 text-xs text-accent bg-accent/[0.08] border border-accent/25 px-2 py-1 rounded-md"><Mic size={12} /> Dictated on deck</span>
             </div>
-            <textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4}
-              className="w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 focus:border-teal-400 outline-none resize-none" />
-            <p className="text-[11px] text-slate-500 mt-2">Rough is fine — Keelson turns this into the formatted report. Nothing is fabricated; every line traces to your notes and photos.</p>
-          </div>
+            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={4} />
+            <p className="text-[11px] text-muted-fg mt-2">Rough is fine — Keelson turns this into the formatted report. Nothing is fabricated; every line traces to your notes and photos.</p>
+          </Card>
 
           <div className="flex items-center justify-between">
-            <button onClick={() => setStep(1)} className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white px-3 py-2"><ChevronLeft size={16} /> Back</button>
-            <button onClick={generate} className="inline-flex items-center gap-2 bg-teal-400 hover:bg-teal-300 text-slate-950 font-semibold text-sm px-5 py-2.5 rounded-lg transition-colors">
-              <Sparkles size={17} /> Generate {typeLabel(reportType).split(" ")[0]} report
-            </button>
+            <Button variant="ghost" onClick={() => setStep(1)}><ChevronLeft size={16} /> Back</Button>
+            <Button onClick={generate}><Sparkles size={17} /> Generate {typeLabel(reportType).split(" ")[0]} report</Button>
           </div>
         </div>
       )}
@@ -514,13 +485,16 @@ function Stepper({ step }) {
         return (
           <React.Fragment key={s}>
             <div className="flex items-center gap-2">
-              <span className={`w-6 h-6 rounded-full ff-mono text-xs flex items-center justify-center ${
-                done ? "bg-teal-400 text-slate-950" : active ? "bg-white text-slate-950" : "bg-slate-800 text-slate-500"}`}>
+              <span className={cn(
+                "w-6 h-6 rounded-full font-mono text-xs flex items-center justify-center",
+                done ? "text-accent-fg bg-[linear-gradient(135deg,var(--accent),var(--accent-2))]"
+                     : active ? "bg-fg text-white" : "bg-muted text-muted-fg"
+              )}>
                 {done ? <Check size={13} /> : n}
               </span>
-              <span className={`text-sm ${active ? "font-semibold text-white" : "text-slate-500"}`}>{s}</span>
+              <span className={cn("text-sm", active ? "font-semibold text-fg" : "text-muted-fg")}>{s}</span>
             </div>
-            {i < steps.length - 1 && <div className="flex-1 h-px bg-slate-800 min-w-4" />}
+            {i < steps.length - 1 && <div className="flex-1 h-px bg-border min-w-4" />}
           </React.Fragment>
         );
       })}
@@ -534,11 +508,11 @@ function Generating() {
   React.useEffect(() => { const t = setInterval(() => setI((v) => (v + 1) % msgs.length), 900); return () => clearInterval(t); }, []);
   return (
     <div className="flex flex-col items-center justify-center py-24 text-center">
-      <div className="w-14 h-14 rounded-xl bg-teal-900 border border-teal-800 flex items-center justify-center mb-5">
-        <Sparkles className="text-teal-300 animate-pulse" size={26} />
+      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 text-accent-fg shadow-accent bg-[linear-gradient(135deg,var(--accent),var(--accent-2))]">
+        <Sparkles className="animate-pulse" size={26} />
       </div>
-      <p className="ff-display font-bold text-white">Building your report</p>
-      <p className="text-sm text-slate-400 mt-1 ff-mono">{msgs[i]}</p>
+      <p className="font-display text-xl text-fg">Building your report</p>
+      <p className="text-sm text-muted-fg mt-1 font-mono">{msgs[i]}</p>
     </div>
   );
 }
@@ -565,15 +539,11 @@ function ResultView(props) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium px-2 py-1 rounded-md border ${offline ? "text-slate-400 bg-slate-800 border-slate-700" : "text-teal-300 bg-teal-900 border-teal-800"}`}>
-            <Sparkles size={12} /> {offline ? "Sample mode (offline)" : "Live AI"}
-          </span>
-          <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 ff-mono">
-            <Clock size={12} /> {genSeconds}s · ~45 min by hand
-          </span>
-          {!signed && <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 ff-mono"><PenLine size={12} /> click any line to edit</span>}
+          <Pill tone={offline ? "neutral" : "accent"}><Sparkles size={12} /> {offline ? "Sample mode (offline)" : "Live AI"}</Pill>
+          <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-fg font-mono"><Clock size={12} /> {genSeconds}s · ~45 min by hand</span>
+          {!signed && <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-fg font-mono"><PenLine size={12} /> click any line to edit</span>}
         </div>
-        <button onClick={onAnother} className="text-sm text-slate-400 hover:text-white">+ Another report</button>
+        <button onClick={onAnother} className="text-sm text-muted-fg hover:text-fg">+ Another report</button>
       </div>
 
       <DocumentChrome
@@ -584,51 +554,35 @@ function ResultView(props) {
       />
 
       {showSign && (
-        <div className="bg-slate-900 rounded-xl border border-teal-800 p-5 space-y-3">
-          <h4 className="ff-display font-bold text-white text-sm flex items-center gap-2"><PenLine size={15} className="text-teal-400" /> QA sign-off</h4>
-          <label className="block">
-            <span className="ff-mono text-[11px] uppercase tracking-wide text-slate-500">Inspector name &amp; stamp</span>
-            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. R. Alvarez — QA-117"
-              className="mt-1 w-full rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-200 focus:border-teal-400 outline-none" />
-          </label>
+        <Card className="p-5 space-y-3 border-accent/30">
+          <h4 className="font-semibold text-fg text-sm flex items-center gap-2"><PenLine size={15} className="text-accent" /> QA sign-off</h4>
+          <Field label="Inspector name & stamp" mono={false} value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. R. Alvarez — QA-117" />
           <label className="flex items-start gap-2 cursor-pointer">
-            <input type="checkbox" checked={attested} onChange={(e) => setAttested(e.target.checked)} className="mt-1 accent-teal-400" />
-            <span className="text-sm text-slate-300">I have reviewed each section against the source evidence and attest this objective quality evidence is accurate and complete.</span>
+            <input type="checkbox" checked={attested} onChange={(e) => setAttested(e.target.checked)} className="mt-1 accent-accent" />
+            <span className="text-sm text-fg">I have reviewed each section against the source evidence and attest this objective quality evidence is accurate and complete.</span>
           </label>
           <div className="flex items-center gap-2 pt-1">
-            <button onClick={confirmSign} disabled={!name.trim() || !attested}
-              className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors ${
-                name.trim() && attested ? "bg-teal-400 text-slate-950 hover:bg-teal-300" : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}>
-              <Check size={15} /> Sign &amp; lock
-            </button>
-            <button onClick={() => setShowSign(false)} className="text-sm text-slate-400 hover:text-white px-3 py-2">Cancel</button>
+            <Button size="sm" onClick={confirmSign} disabled={!name.trim() || !attested}><Check size={15} /> Sign &amp; lock</Button>
+            <Button size="sm" variant="ghost" onClick={() => setShowSign(false)}>Cancel</Button>
           </div>
-        </div>
+        </Card>
       )}
 
-      <div className="bg-slate-900 rounded-xl border border-slate-800 p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <Card className="p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
         <div className="flex items-center gap-2 text-sm">
           {signed
-            ? <><CircleCheck size={18} className="text-emerald-400" /> <span className="text-slate-300">Signed by <span className="text-white font-medium">{signOff.name}</span> · <span className="ff-mono text-xs">{signOff.date}</span></span></>
+            ? <><CircleCheck size={18} className="text-success" /> <span className="text-fg">Signed by <span className="font-medium">{signOff.name}</span> · <span className="font-mono text-xs">{signOff.date}</span></span></>
             : allVerified
-              ? <><CircleCheck size={18} className="text-emerald-400" /> <span className="text-slate-300">All sections verified — ready for QA sign-off.</span></>
-              : <><AlertTriangle size={18} className="text-amber-400" /> <span className="text-slate-300"><span className="ff-mono">{verifiedCount}/{totalSections}</span> sections verified. Check each against the evidence.</span></>}
+              ? <><CircleCheck size={18} className="text-success" /> <span className="text-fg">All sections verified — ready for QA sign-off.</span></>
+              : <><AlertTriangle size={18} className="text-warning" /> <span className="text-fg"><span className="font-mono">{verifiedCount}/{totalSections}</span> sections verified. Check each against the evidence.</span></>}
         </div>
         <div className="flex items-center gap-2">
           {!signed && (
-            <button disabled={!allVerified} onClick={() => setShowSign(true)}
-              className={`inline-flex items-center gap-2 text-sm font-semibold px-4 py-2 rounded-lg transition-colors ${
-                allVerified ? "bg-teal-400 text-slate-950 hover:bg-teal-300" : "bg-slate-800 text-slate-600 cursor-not-allowed"}`}>
-              <PenLine size={15} /> QA sign-off
-            </button>
+            <Button size="sm" onClick={() => setShowSign(true)} disabled={!allVerified}><PenLine size={15} /> QA sign-off</Button>
           )}
-          <button onClick={onExport}
-            className={`inline-flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border transition-colors ${
-              signed ? "bg-teal-400 text-slate-950 border-teal-400 hover:bg-teal-300 font-semibold" : "border-slate-700 text-slate-300 hover:border-teal-400 hover:text-teal-300"}`}>
-            <Download size={15} /> Export
-          </button>
+          <Button size="sm" variant={signed ? "primary" : "outline"} onClick={onExport}><Download size={15} /> Export</Button>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }
@@ -642,51 +596,53 @@ function EditableText({ value, onSave }) {
       <textarea autoFocus value={val} rows={4}
         onChange={(e) => setVal(e.target.value)}
         onBlur={() => { onSave(val); setEditing(false); }}
-        className="w-full text-sm text-slate-800 bg-white border border-teal-400 rounded-md p-2 leading-relaxed resize-y outline-none" />
+        className="w-full text-sm text-fg bg-card border border-accent rounded-md p-2 leading-relaxed resize-y outline-none ring-2 ring-accent/20" />
     );
   }
   return (
     <p onClick={() => setEditing(true)} title="Click to edit"
-      className="text-sm text-slate-700 leading-relaxed cursor-text rounded -mx-1 px-1 hover:bg-stone-100 transition-colors">
+      className="text-sm text-slate-700 leading-relaxed cursor-text rounded -mx-1 px-1 hover:bg-muted transition-colors">
       {value}
     </p>
   );
 }
 
-// The generated document renders as light "paper" against the dark UI.
+// The generated document renders as clean white "paper" within the app.
 function DocumentChrome({ result, reportType, ctx, verified, setVerified, editable, edits, onEdit, signOff }) {
   return (
-    <div className="bg-stone-50 text-slate-900 rounded-xl overflow-hidden kglow">
-      <div className="px-5 py-4 border-b border-stone-200">
+    <div className="bg-card text-fg rounded-xl overflow-hidden border border-border shadow-lg">
+      <div className="px-5 py-4 border-b border-border">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="ff-mono text-[10px] text-slate-400 uppercase tracking-widest">{typeLabel(reportType)}</p>
-            <p className="ff-display font-extrabold text-lg leading-tight mt-0.5 text-slate-900">{result.summary}</p>
+            <p className="font-mono text-[10px] text-muted-fg uppercase tracking-widest">{typeLabel(reportType)}</p>
+            <p className="font-display text-xl leading-tight mt-1 text-fg">{result.summary}</p>
           </div>
-          <span className={`ff-mono text-[10px] px-2 py-1 rounded border ${sevColorDoc(result.severity)}`}>{result.severity}</span>
+          <Pill tone={severityTone(result.severity)}>{result.severity}</Pill>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 mt-4 pt-3 border-t border-stone-200">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 mt-4 pt-3 border-t border-border">
           {[["Report", result.reportNumber], ["Hull", ctx.ship], ["Avail", (ctx.availability || "").split(" · ")[0]], ["Loc", ctx.location]].map(([k, v]) => (
             <div key={k}>
-              <p className="ff-mono text-[9px] uppercase tracking-wider text-slate-400">{k}</p>
-              <p className="ff-mono text-xs text-slate-700 truncate">{v}</p>
+              <p className="font-mono text-[9px] uppercase tracking-wider text-muted-fg">{k}</p>
+              <p className="font-mono text-xs text-fg truncate">{v}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="divide-y divide-stone-200">
+      <div className="divide-y divide-border">
         {result.sections.map((s) => {
           const isVer = !!(verified && verified[s.key]);
           const content = effContent(edits, s.key, s.content);
           return (
             <div key={s.key} className="px-5 py-4">
               <div className="flex items-start justify-between gap-3 mb-1.5">
-                <h4 className="ff-mono text-xs font-bold uppercase tracking-wide text-slate-500">{s.label}</h4>
+                <h4 className="font-mono text-xs font-bold uppercase tracking-wide text-muted-fg">{s.label}</h4>
                 {editable && (
                   <button onClick={() => setVerified((v) => ({ ...v, [s.key]: !v[s.key] }))}
-                    className={`shrink-0 inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md border transition-colors ${
-                      isVer ? "text-emerald-700 bg-emerald-100 border-emerald-300" : "text-amber-700 bg-amber-100 border-amber-300 hover:bg-amber-200"}`}>
+                    className={cn(
+                      "shrink-0 inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-md border transition-colors",
+                      isVer ? "text-success bg-success/10 border-success/25" : "text-warning bg-warning/10 border-warning/25 hover:bg-warning/20"
+                    )}>
                     {isVer ? <><Check size={12} /> Verified</> : "Verify"}
                   </button>
                 )}
@@ -696,11 +652,11 @@ function DocumentChrome({ result, reportType, ctx, verified, setVerified, editab
                 : <p className="text-sm text-slate-700 leading-relaxed">{content}</p>}
               {s.sources && s.sources.length > 0 && (
                 <div className="flex items-center gap-1.5 mt-2 flex-wrap">
-                  <span className="text-[10px] text-slate-400">Evidence:</span>
+                  <span className="text-[10px] text-muted-fg">Evidence:</span>
                   {s.sources.map((idx) => {
                     const ph = SAMPLE_PHOTOS.find((p) => p.id === idx);
                     return (
-                      <span key={idx} className="inline-flex items-center gap-1 ff-mono text-[10px] text-slate-500 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded">
+                      <span key={idx} className="inline-flex items-center gap-1 font-mono text-[10px] text-muted-fg bg-muted border border-border px-1.5 py-0.5 rounded">
                         <Camera size={10} /> #{idx}{ph ? ` ${ph.cap.split(",")[0]}` : ""}
                       </span>
                     );
@@ -713,16 +669,16 @@ function DocumentChrome({ result, reportType, ctx, verified, setVerified, editab
       </div>
 
       {signOff ? (
-        <div className="px-5 py-4 bg-emerald-50 border-t border-emerald-200 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0"><Check size={18} /></div>
+        <div className="px-5 py-4 bg-success/[0.07] border-t border-success/20 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-success text-white flex items-center justify-center shrink-0"><Check size={18} /></div>
           <div className="min-w-0">
-            <p className="ff-mono text-[10px] uppercase tracking-wider text-emerald-700">Quality Assurance Sign-off</p>
-            <p className="text-sm font-semibold text-slate-900 truncate">{signOff.name}</p>
-            <p className="ff-mono text-[11px] text-slate-500">{signOff.date} · OQE attested accurate &amp; complete</p>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-success">Quality Assurance Sign-off</p>
+            <p className="text-sm font-semibold text-fg truncate">{signOff.name}</p>
+            <p className="font-mono text-[11px] text-muted-fg">{signOff.date} · OQE attested accurate &amp; complete</p>
           </div>
         </div>
       ) : (
-        <div className="px-5 py-3 bg-stone-100 border-t border-stone-200 flex items-center gap-2 ff-mono text-[11px] text-slate-500">
+        <div className="px-5 py-3 bg-muted border-t border-border flex items-center gap-2 font-mono text-[11px] text-muted-fg">
           <ShieldCheck size={13} /> Generated as draft OQE · requires QA verification &amp; sign-off before submission
         </div>
       )}
@@ -736,34 +692,35 @@ function Documents({ onOpen }) {
   return (
     <div className="space-y-5">
       <div>
-        <span className="ff-mono text-xs tracking-widest uppercase text-teal-400">Archive</span>
-        <h2 className="ff-display text-2xl font-extrabold tracking-tight text-white mt-1">Documents</h2>
-        <p className="text-slate-400 text-sm mt-1">Every report generated this availability, with full evidence trail.</p>
+        <SectionLabel>Archive</SectionLabel>
+        <h2 className="font-display text-[28px] text-fg mt-3">Documents</h2>
+        <p className="text-muted-fg text-sm mt-1">Every report generated this availability, with full evidence trail.</p>
       </div>
       <div className="flex gap-2 flex-wrap">
         {[["all", "All"], ["cfr", "Condition Found"], ["oqe", "OQE Packages"], ["daily", "Daily Reports"], ["tip", "Test Plans"]].map(([id, label]) => (
           <button key={id} onClick={() => setFilter(id)}
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border transition-colors ${
-              filter === id ? "bg-teal-400 text-slate-950 border-teal-400" : "bg-slate-900 text-slate-400 border-slate-700 hover:border-slate-500"}`}>
+            className={cn(
+              "text-xs font-medium px-3 py-1.5 rounded-full border transition-colors",
+              filter === id ? "text-accent-fg border-transparent bg-[linear-gradient(90deg,var(--accent),var(--accent-2))]" : "bg-card text-muted-fg border-border hover:border-accent/40"
+            )}>
             {label}
           </button>
         ))}
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
         {shown.map((d) => (
-          <button key={d.reportNumber} onClick={() => onOpen(d)}
-            className="text-left bg-slate-900 rounded-xl border border-slate-800 hover:border-teal-700 transition-all p-4">
+          <Card as="button" hover key={d.reportNumber} onClick={() => onOpen(d)} className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className={`ff-mono text-[10px] px-1.5 py-0.5 rounded border ${sevColor(d.severity)}`}>{d.severity}</span>
-              <span className="text-[11px] text-slate-500">{d.date}</span>
+              <Pill tone={severityTone(d.severity)}>{d.severity}</Pill>
+              <span className="text-[11px] text-muted-fg">{d.date}</span>
             </div>
-            <p className="font-semibold text-white text-sm leading-snug">{d.summary}</p>
-            <p className="ff-mono text-xs text-slate-500 mt-1">{d.reportNumber} · {typeLabel(d.type)}</p>
+            <p className="font-semibold text-fg text-sm leading-snug">{d.summary}</p>
+            <p className="font-mono text-xs text-muted-fg mt-1">{d.reportNumber} · {typeLabel(d.type)}</p>
             <div className="mt-3 flex items-center gap-1.5">
-              {d.status === "Verified" ? <CircleCheck size={14} className="text-emerald-400" /> : <Clock size={14} className="text-amber-400" />}
-              <span className="text-xs text-slate-400">{d.status}</span>
+              {d.status === "Verified" ? <CircleCheck size={14} className="text-success" /> : <Clock size={14} className="text-warning" />}
+              <span className="text-xs text-muted-fg">{d.status}</span>
             </div>
-          </button>
+          </Card>
         ))}
       </div>
     </div>
@@ -772,14 +729,14 @@ function Documents({ onOpen }) {
 
 function DocViewer({ doc, onClose }) {
   return (
-    <div className="fixed inset-0 z-30 bg-slate-950/75 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
-      <div className="bg-slate-900 w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-slate-800" onClick={(e) => e.stopPropagation()}>
-        <div className="sticky top-0 bg-slate-900 px-4 py-3 flex items-center justify-between border-b border-slate-800">
-          <span className="ff-mono text-xs text-slate-400">{doc.reportNumber}</span>
-          <button onClick={onClose} className="p-1 text-slate-400 hover:text-white"><X size={20} /></button>
+    <div className="fixed inset-0 z-30 bg-fg/50 flex items-end sm:items-center justify-center p-0 sm:p-6" onClick={onClose}>
+      <div className="bg-bg w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto rounded-t-2xl sm:rounded-2xl border border-border shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="sticky top-0 bg-card px-4 py-3 flex items-center justify-between border-b border-border">
+          <span className="font-mono text-xs text-muted-fg">{doc.reportNumber}</span>
+          <button onClick={onClose} className="p-1 text-muted-fg hover:text-fg"><X size={20} /></button>
         </div>
         <div className="p-4">
-          <DocumentChrome result={doc} reportType={doc.type} ctx={SAMPLE_CONTEXT} verified={{}} setVerified={() => {}} editable={false} edits={{}} onEdit={null} signOff={null} />
+          <DocumentChrome doc={doc} result={doc} reportType={doc.type} ctx={SAMPLE_CONTEXT} verified={{}} setVerified={() => {}} editable={false} edits={{}} onEdit={null} signOff={null} />
         </div>
       </div>
     </div>
@@ -791,43 +748,41 @@ function PrintView({ result, ctx, edits, signOff, reportType, onClose }) {
   const [format, setFormat] = useState(signOff ? "submission" : "working");
   const submission = format === "submission";
   return (
-    <div className="fixed inset-0 z-40 bg-slate-950/85 overflow-y-auto">
-      <div className="no-print sticky top-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-slate-900 border-b border-slate-800">
+    <div className="fixed inset-0 z-40 bg-fg/60 overflow-y-auto">
+      <div className="no-print sticky top-0 flex flex-wrap items-center justify-between gap-3 px-4 py-3 bg-card border-b border-border">
         <div className="flex items-center gap-3">
-          <span className="ff-mono text-xs text-slate-400">Export · {result.reportNumber}</span>
-          <div className="flex rounded-lg border border-slate-700 overflow-hidden">
-            {[["working", "Working copy"], ["submission", "Submission (NMD-ready)"]].map(([id, label]) => (
+          <span className="font-mono text-xs text-muted-fg">Export · {result.reportNumber}</span>
+          <div className="flex rounded-lg border border-border overflow-hidden">
+            {[["working", "Working copy"], ["submission", "Submission (agency-ready)"]].map(([id, label]) => (
               <button key={id} onClick={() => setFormat(id)}
-                className={`text-xs px-3 py-1.5 transition-colors ${format === id ? "bg-teal-400 text-slate-950 font-semibold" : "text-slate-300 hover:text-white"}`}>
+                className={cn("text-xs px-3 py-1.5 transition-colors", format === id ? "text-accent-fg bg-[linear-gradient(90deg,var(--accent),var(--accent-2))]" : "text-muted-fg hover:text-fg")}>
                 {label}
               </button>
             ))}
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => window.print()} className="inline-flex items-center gap-2 bg-teal-400 hover:bg-teal-300 text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg">
-            <Printer size={15} /> Print / Save as PDF
-          </button>
-          <button onClick={onClose} className="text-sm text-slate-300 hover:text-white px-3 py-2 border border-slate-700 rounded-lg">Close</button>
+          <Button size="sm" onClick={() => window.print()}><Printer size={15} /> Print / Save as PDF</Button>
+          <Button size="sm" variant="outline" onClick={onClose}>Close</Button>
         </div>
       </div>
 
       <div className="print-page bg-white text-slate-900 max-w-3xl mx-auto my-6 p-10 rounded-sm shadow-2xl">
         <div className="flex items-start justify-between border-b-2 border-slate-900 pb-4">
           <div>
-            <p className="ff-mono text-[11px] uppercase tracking-widest text-slate-500">{typeLabel(reportType)}</p>
-            <h1 className="ff-display font-extrabold text-2xl text-slate-900 mt-1 leading-tight">{result.summary}</h1>
+            <p className="font-mono text-[11px] uppercase tracking-widest text-slate-500">{typeLabel(reportType)}</p>
+            <h1 className="font-display text-2xl text-slate-900 mt-1 leading-tight">{result.summary}</h1>
           </div>
           <div className="text-right">
-            <p className="ff-display font-extrabold text-lg text-slate-900">KEELSON</p>
-            <p className="ff-mono text-[10px] text-slate-500">{result.reportNumber}</p>
+            <p className="font-display text-lg text-slate-900">Keelson</p>
+            <p className="font-mono text-[10px] text-slate-500">{result.reportNumber}</p>
           </div>
         </div>
 
         {submission && (
-          <div className={`mt-4 rounded-md px-3 py-2 ff-mono text-[11px] flex items-center gap-2 ${signOff ? "bg-teal-50 text-teal-800 border border-teal-200" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+          <div className={cn("mt-4 rounded-md px-3 py-2 font-mono text-[11px] flex items-center gap-2 border", signOff ? "bg-accent/[0.06] text-accent border-accent/20" : "bg-warning/10 text-warning border-warning/25")}>
             <ShieldCheck size={13} /> {signOff
-              ? "Submission package — formatted for the Navy Maintenance Database (NMD). Required fields mapped."
+              ? "Submission package — formatted for your customer's maintenance database. Required fields mapped."
               : "Submission format selected — complete QA sign-off before this package is submission-ready."}
           </div>
         )}
@@ -835,8 +790,8 @@ function PrintView({ result, ctx, edits, signOff, reportType, onClose }) {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-slate-300">
           {[["Hull", ctx.ship], ["Availability", (ctx.availability || "").split(" · ")[0]], ["Work item", ctx.workItem], ["Location", ctx.location]].map(([k, v]) => (
             <div key={k}>
-              <p className="ff-mono text-[9px] uppercase tracking-wider text-slate-400">{k}</p>
-              <p className="ff-mono text-xs text-slate-800">{v}</p>
+              <p className="font-mono text-[9px] uppercase tracking-wider text-slate-400">{k}</p>
+              <p className="font-mono text-xs text-slate-800">{v}</p>
             </div>
           ))}
         </div>
@@ -844,12 +799,10 @@ function PrintView({ result, ctx, edits, signOff, reportType, onClose }) {
         <div className="py-2">
           {result.sections.map((s, i) => (
             <div key={s.key} className="py-3 border-b border-slate-200">
-              <h2 className="ff-mono text-xs font-bold uppercase tracking-wide text-slate-600 mb-1">{i + 1}. {s.label}</h2>
+              <h2 className="font-mono text-xs font-bold uppercase tracking-wide text-slate-600 mb-1">{i + 1}. {s.label}</h2>
               <p className="text-sm text-slate-800 leading-relaxed">{effContent(edits, s.key, s.content)}</p>
               {s.sources && s.sources.length > 0 && (
-                <p className="ff-mono text-[10px] text-slate-500 mt-1.5">
-                  Evidence: {s.sources.map((idx) => `#${idx}`).join(", ")}
-                </p>
+                <p className="font-mono text-[10px] text-slate-500 mt-1.5">Evidence: {s.sources.map((idx) => `#${idx}`).join(", ")}</p>
               )}
             </div>
           ))}
@@ -858,17 +811,17 @@ function PrintView({ result, ctx, edits, signOff, reportType, onClose }) {
         {signOff ? (
           <div className="mt-5 pt-4 border-t-2 border-slate-900 flex items-end justify-between">
             <div>
-              <p className="ff-mono text-[10px] uppercase tracking-wider text-slate-500">Quality Assurance Sign-off</p>
+              <p className="font-mono text-[10px] uppercase tracking-wider text-slate-500">Quality Assurance Sign-off</p>
               <p className="text-base font-semibold text-slate-900 mt-1" style={{ fontFamily: "cursive" }}>{signOff.name}</p>
-              <p className="ff-mono text-[11px] text-slate-500">{signOff.date}</p>
+              <p className="font-mono text-[11px] text-slate-500">{signOff.date}</p>
             </div>
-            <p className="ff-mono text-[10px] text-slate-500 max-w-[16rem] text-right">OQE reviewed against source evidence and attested accurate &amp; complete.</p>
+            <p className="font-mono text-[10px] text-slate-500 max-w-[16rem] text-right">OQE reviewed against source evidence and attested accurate &amp; complete.</p>
           </div>
         ) : (
-          <p className="mt-5 pt-4 border-t border-slate-300 ff-mono text-[10px] text-slate-400">DRAFT — pending QA verification &amp; sign-off. Not for submission.</p>
+          <p className="mt-5 pt-4 border-t border-slate-300 font-mono text-[10px] text-slate-400">DRAFT — pending QA verification &amp; sign-off. Not for submission.</p>
         )}
 
-        <p className="ff-mono text-[9px] text-slate-400 mt-6 text-center">Generated with Keelson · runs in your environment · controlled information never leaves your boundary</p>
+        <p className="font-mono text-[9px] text-slate-400 mt-6 text-center">Generated with Keelson · runs in your environment · controlled information never leaves your boundary</p>
       </div>
     </div>
   );
@@ -884,23 +837,23 @@ function Security() {
   return (
     <div className="space-y-5">
       <div>
-        <span className="ff-mono text-xs tracking-widest uppercase text-teal-400">Security &amp; deployment</span>
-        <h2 className="ff-display text-2xl font-extrabold tracking-tight text-white mt-1">Built for controlled information</h2>
-        <p className="text-slate-400 text-sm mt-1">The answer to the first question every contracts office asks.</p>
+        <SectionLabel>Security &amp; deployment</SectionLabel>
+        <h2 className="font-display text-[28px] text-fg mt-3">Built for controlled information</h2>
+        <p className="text-muted-fg text-sm mt-1">The answer to the first question every contracts office asks.</p>
       </div>
       <div className="grid sm:grid-cols-2 gap-3">
         {rows.map((r) => (
-          <div key={r.t} className="bg-slate-900 rounded-xl border border-slate-800 p-5">
-            <div className="w-10 h-10 rounded-lg bg-teal-900 border border-teal-800 text-teal-300 flex items-center justify-center mb-3"><r.icon size={19} /></div>
-            <p className="ff-display font-bold text-white">{r.t}</p>
-            <p className="text-sm text-slate-400 mt-1 leading-relaxed">{r.d}</p>
-          </div>
+          <Card key={r.t} className="p-5">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 text-accent-fg shadow-accent bg-[linear-gradient(135deg,var(--accent),var(--accent-2))]"><r.icon size={19} /></div>
+            <p className="font-semibold text-fg">{r.t}</p>
+            <p className="text-sm text-muted-fg mt-1 leading-relaxed">{r.d}</p>
+          </Card>
         ))}
       </div>
-      <div className="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl p-5 text-sm leading-relaxed">
-        <p className="text-white font-semibold mb-1 flex items-center gap-2 ff-display"><Lock size={16} className="text-teal-400" /> Why this matters here</p>
-        Ship-repair documentation touches CUI. A tool that ships your data to someone else's cloud is a non-starter with a contracts office. Keelson is designed to live where your data already lives — so adoption doesn't require a security exception.
-      </div>
+      <Card className="p-5 text-sm leading-relaxed text-fg">
+        <p className="font-semibold mb-1 flex items-center gap-2 font-display text-base"><Lock size={16} className="text-accent" /> Why this matters here</p>
+        <span className="text-muted-fg">Ship-repair documentation touches CUI. A tool that ships your data to someone else's cloud is a non-starter with a contracts office. Keelson is designed to live where your data already lives — so adoption doesn't require a security exception.</span>
+      </Card>
     </div>
   );
 }

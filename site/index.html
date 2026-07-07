@@ -3,226 +3,268 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Keelson — Inspection &amp; compliance documentation for ship repair</title>
-<meta name="description" content="Keelson turns field evidence into audit-ready documentation — inside your own secure environment. Built for the U.S. private ship-repair industrial base." />
+<title>Keelson — Modern inspection &amp; compliance documentation for ship repair</title>
+<meta name="description" content="Keelson turns field evidence into audit-ready repair documentation — inside your own secure environment. Modern software built for the U.S. ship-repair industrial base." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400..600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
+  /* ============================================================
+     DESIGN TOKENS — single source of truth (mirrored in demo-app)
+     ============================================================ */
   :root{
-    --ink:#0A0E13; --ink-2:#0F151C; --surface:#141C26; --surface-2:#1B2530;
-    --line:rgba(255,255,255,.09); --line-2:rgba(255,255,255,.05);
-    --haze:#8C9AAA; --haze-2:#5E6A78; --paper:#ECF1F6;
-    --signal:#34D8C4; --signal-deep:#123F39; --caution:#F2A33C;
-    --doc:#F7F5EF; --doc-ink:#1A2230; --doc-haze:#5b6573;
-    --maxw:1140px;
+    --bg:#FAFAFA; --fg:#0F172A; --card:#FFFFFF;
+    --muted:#F1F5F9; --muted-fg:#64748B;
+    --accent:#0052FF; --accent-2:#4D7CFF; --accent-fg:#FFFFFF;
+    --border:#E2E8F0; --ring:#0052FF;
+    --grad:linear-gradient(135deg,var(--accent),var(--accent-2));
+    --grad-r:linear-gradient(90deg,var(--accent),var(--accent-2));
+
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;
-    --disp:'Archivo','Inter',-apple-system,sans-serif;
-    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:'Fraunces',Georgia,'Times New Roman',serif;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+
+    --sh-sm:0 1px 3px rgba(15,23,42,.06);
+    --sh-md:0 4px 10px rgba(15,23,42,.07);
+    --sh-lg:0 12px 26px -8px rgba(15,23,42,.12);
+    --sh-xl:0 26px 50px -14px rgba(15,23,42,.16);
+    --sh-accent:0 8px 22px rgba(0,82,255,.22);
+    --sh-accent-lg:0 14px 34px rgba(0,82,255,.30);
+
+    --maxw:1160px;
+    --r-lg:12px; --r-xl:16px; --r-2xl:22px;
   }
+
+  /* ============================================================ RESET */
   *{box-sizing:border-box;margin:0;padding:0}
   html{scroll-behavior:smooth}
-  body{background:var(--ink);color:var(--paper);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{background:var(--bg);color:var(--fg);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
   a{color:inherit;text-decoration:none}
+  img,svg{display:block}
+  ::selection{background:rgba(0,82,255,.16)}
+
+  /* ============================================================ PRIMITIVES */
   .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
   .mono{font-family:var(--mono)}
-  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--signal);display:inline-flex;align-items:center;gap:8px}
-  .eyebrow::before{content:"";width:18px;height:1px;background:var(--signal);display:inline-block}
-  h1,h2,h3{font-family:var(--disp);font-weight:800;letter-spacing:-.02em;line-height:1.05}
+  h1,h2,h3{font-family:var(--disp);font-weight:500;font-optical-sizing:auto;letter-spacing:-.022em;line-height:1.08}
+  .gradient-text{background:var(--grad-r);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  .section-label{display:inline-flex;align-items:center;gap:10px;border:1px solid rgba(0,82,255,.28);background:rgba(0,82,255,.06);border-radius:100px;padding:7px 15px}
+  .section-label .ld{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse-dot 2.4s ease-in-out infinite}
+  .section-label span{font-family:var(--mono);font-size:11.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent)}
+  .section-label.on-dark{border-color:rgba(255,255,255,.18);background:rgba(255,255,255,.06)}
+  .section-label.on-dark span{color:#9EC0FF}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;font-family:var(--sans);font-weight:600;font-size:15px;height:50px;padding:0 22px;border-radius:var(--r-lg);cursor:pointer;border:1px solid transparent;transition:transform .2s ease,box-shadow .2s ease,background .2s ease,border-color .2s ease,filter .2s ease}
+  .btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--ring)}
+  .btn-primary{background:var(--grad-r);color:var(--accent-fg);box-shadow:var(--sh-accent)}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:var(--sh-accent-lg);filter:brightness(1.06)}
+  .btn-primary:active{transform:translateY(0) scale(.985)}
+  .btn-outline{background:var(--card);color:var(--fg);border-color:var(--border)}
+  .btn-outline:hover{border-color:rgba(0,82,255,.4);box-shadow:var(--sh-md);transform:translateY(-2px)}
+  .btn-ghost{background:transparent;color:var(--muted-fg)}
+  .btn-ghost:hover{color:var(--fg)}
+  .btn .arrow{transition:transform .2s ease}
+  .btn:hover .arrow{transform:translateX(4px)}
+  .btn.on-dark.btn-outline{background:transparent;color:#fff;border-color:rgba(255,255,255,.22)}
+  .btn.on-dark.btn-outline:hover{border-color:rgba(255,255,255,.55);background:rgba(255,255,255,.06)}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-md)}
+
   section{position:relative}
-  .sec-pad{padding:96px 0}
-  .btn{display:inline-flex;align-items:center;gap:9px;font-weight:600;font-size:15px;padding:13px 22px;border-radius:8px;transition:.18s;cursor:pointer;border:1px solid transparent}
-  .btn-primary{background:var(--signal);color:#04201c}
-  .btn-primary:hover{background:#54e6d4;transform:translateY(-1px)}
-  .btn-ghost{background:transparent;color:var(--paper);border-color:var(--line)}
-  .btn-ghost:hover{border-color:var(--signal);color:var(--signal)}
-  .arrow{transition:transform .18s}
-  .btn:hover .arrow{transform:translateX(3px)}
+  .sec-pad{padding:120px 0}
+  .sec-head{max-width:660px}
+  .sec-head.center{margin:0 auto;text-align:center}
+  .sec-head h2{font-size:clamp(30px,4vw,52px);margin:20px 0 16px}
+  .sec-head p{color:var(--muted-fg);font-size:18px;line-height:1.7}
 
-  /* blueprint grid bg */
-  .grid-bg{position:absolute;inset:0;background-image:linear-gradient(var(--line-2) 1px,transparent 1px),linear-gradient(90deg,var(--line-2) 1px,transparent 1px);background-size:46px 46px;mask-image:radial-gradient(ellipse 80% 60% at 50% 0%,#000 30%,transparent 75%);pointer-events:none}
+  /* ============================================================ NAV */
+  nav{position:sticky;top:0;z-index:50;background:rgba(250,250,250,.72);backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid transparent;transition:.3s}
+  nav.scrolled{background:rgba(250,250,250,.9);border-bottom-color:var(--border);box-shadow:var(--sh-sm)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:70px}
+  .brand{display:flex;align-items:center;gap:11px;font-family:var(--disp);font-size:22px;letter-spacing:-.01em;color:var(--fg)}
+  .mark{width:34px;height:34px;border-radius:9px;background:var(--grad);display:grid;place-items:center;color:#fff;box-shadow:var(--sh-accent)}
+  .mark svg{width:19px;height:19px}
+  .nav-links{display:flex;align-items:center;gap:32px}
+  .nav-links a{font-size:14.5px;color:var(--muted-fg);font-weight:500;transition:.15s}
+  .nav-links a:hover{color:var(--fg)}
+  .nav-cta{display:flex;align-items:center;gap:12px}
+  .menu-btn{display:none;background:none;border:0;color:var(--fg);cursor:pointer}
+  .mobile-panel{display:none;border-bottom:1px solid var(--border);background:var(--card)}
+  .mobile-panel a{display:block;padding:14px 24px;color:var(--muted-fg);border-top:1px solid var(--border);font-size:15px;font-weight:500}
 
-  /* NAV */
-  nav{position:sticky;top:0;z-index:50;background:rgba(10,14,19,.72);backdrop-filter:blur(12px);border-bottom:1px solid var(--line);transition:background .3s,box-shadow .3s,border-color .3s}
-  nav.scrolled{background:rgba(8,11,16,.9);box-shadow:0 10px 34px -16px rgba(0,0,0,.7);border-bottom-color:rgba(255,255,255,.13)}
-  .nav-in{display:flex;align-items:center;justify-content:space-between;height:64px}
-  .brand{display:flex;align-items:center;gap:10px;font-family:var(--disp);font-weight:800;font-size:20px;letter-spacing:-.01em}
-  .mark{width:30px;height:30px;border-radius:7px;border:1px solid var(--signal);background:var(--signal-deep);display:grid;place-items:center;color:var(--signal)}
-  .mark svg{width:17px;height:17px}
-  .nav-links{display:flex;align-items:center;gap:30px}
-  .nav-links a{font-size:14px;color:var(--haze);transition:.15s}
-  .nav-links a:hover{color:var(--paper)}
-  .nav-cta{display:flex;align-items:center;gap:14px}
-  .menu-btn{display:none;background:none;border:0;color:var(--paper);cursor:pointer}
-  .mobile-panel{display:none;border-bottom:1px solid var(--line);background:var(--ink-2)}
-  .mobile-panel a{display:block;padding:13px 24px;color:var(--haze);border-top:1px solid var(--line-2);font-size:15px}
+  /* scroll progress */
+  .progress{position:fixed;top:0;left:0;height:3px;width:100%;transform:scaleX(0);transform-origin:0 50%;background:var(--grad-r);z-index:60;will-change:transform}
 
-  /* HERO */
-  .hero{padding:74px 0 86px;position:relative;overflow:hidden}
-  .hero-grid{display:grid;grid-template-columns:1.04fr .96fr;gap:54px;align-items:center}
-  .hero h1{font-size:55px;margin:20px 0 18px}
-  .hero h1 .hl{color:var(--signal)}
-  .hero p.lede{font-size:19px;color:var(--haze);max-width:30em}
-  .hero-cta{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
-  .trust-row{display:flex;gap:22px;margin-top:30px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--haze-2);letter-spacing:.03em}
-  .trust-row span{display:inline-flex;align-items:center;gap:7px}
-  .dot{width:5px;height:5px;border-radius:50%;background:var(--signal)}
+  /* ============================================================ HERO */
+  .hero{padding:80px 0 110px;position:relative;overflow:hidden}
+  .hero-glow{position:absolute;top:-160px;right:-120px;width:620px;height:620px;border-radius:50%;background:radial-gradient(circle,rgba(0,82,255,.10),transparent 68%);pointer-events:none}
+  .hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:56px;align-items:center;position:relative}
+  .hero h1{font-size:clamp(42px,5.6vw,80px);margin:24px 0 22px}
+  .hl-wrap{position:relative;display:inline-block}
+  .hl-wrap .gradient-underline{position:absolute;left:0;bottom:.02em;height:.42em;width:100%;background:linear-gradient(90deg,rgba(0,82,255,.16),rgba(77,124,255,.08));border-radius:3px;z-index:-1}
+  .hero p.lede{font-size:19px;color:var(--muted-fg);max-width:32em;line-height:1.75}
+  .hero-cta{display:flex;gap:14px;margin-top:34px;flex-wrap:wrap}
+  .trust-row{display:flex;gap:24px;margin-top:36px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted-fg);letter-spacing:.02em}
+  .trust-row span{display:inline-flex;align-items:center;gap:8px}
+  .trust-row .td{width:6px;height:6px;border-radius:50%;background:var(--accent);animation:pulse-dot 2.4s ease-in-out infinite}
 
-  /* transform panel (signature) */
-  .panel{background:linear-gradient(180deg,var(--surface),var(--ink-2));border:1px solid var(--line);border-radius:16px;padding:18px;position:relative;box-shadow:0 30px 70px -30px rgba(0,0,0,.7)}
-  .panel-label{position:absolute;top:-10px;left:18px;background:var(--ink);padding:0 9px;font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--haze-2);text-transform:uppercase}
-  .xform{display:grid;grid-template-columns:1fr auto 1.12fr;gap:14px;align-items:center}
-  .ev-col .ev-h,.doc .doc-h{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--haze-2);margin-bottom:9px}
-  .ev-types{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-  .et{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;letter-spacing:.02em;color:var(--haze);background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:6px;padding:5px 8px}
-  .et svg{width:11px;height:11px;color:var(--signal);flex:none}
-  .et.more{color:var(--haze-2);border-style:dashed}
-  .notes{font-family:var(--mono);font-size:11px;color:var(--haze);background:rgba(0,0,0,.25);border:1px solid var(--line-2);border-radius:7px;padding:9px;line-height:1.5}
-  .mic{display:inline-flex;align-items:center;gap:5px;margin-top:9px;font-family:var(--mono);font-size:9px;color:var(--signal);letter-spacing:.06em}
-  .xarrow{display:grid;place-items:center;color:var(--signal)}
-  .xarrow div{font-family:var(--mono);font-size:8px;color:var(--haze-2);margin-top:5px;letter-spacing:.1em;writing-mode:vertical-rl;text-orientation:mixed}
-  .doc{background:var(--doc);color:var(--doc-ink);border-radius:9px;padding:13px;box-shadow:0 16px 36px -14px rgba(52,216,196,.25)}
-  .doc .doc-h{color:var(--doc-haze)}
-  .doc-title{font-family:var(--disp);font-weight:700;font-size:13px;line-height:1.2;margin-bottom:8px}
-  .doc-meta{display:flex;gap:10px;font-family:var(--mono);font-size:8.5px;color:var(--doc-haze);border-top:1px solid #e2ddd0;border-bottom:1px solid #e2ddd0;padding:6px 0;margin-bottom:9px;flex-wrap:wrap}
-  .doc-body{font-size:10px;color:#3c4654;line-height:1.5}
-  .doc-chip{display:inline-flex;align-items:center;gap:4px;font-family:var(--mono);font-size:8px;background:#ece8dd;color:#5b6573;border-radius:4px;padding:2px 6px;margin:8px 5px 0 0}
-  .doc-verify{display:inline-flex;align-items:center;gap:5px;margin-top:10px;font-family:var(--mono);font-size:9px;color:#0f7a64;font-weight:500}
+  /* hero graphic — animated evidence → document composition */
+  .graphic{position:relative;height:440px}
+  .g-ring{position:absolute;top:50%;left:50%;width:360px;height:360px;margin:-180px 0 0 -180px;border:1.5px dashed rgba(0,82,255,.28);border-radius:50%;animation:spin 60s linear infinite}
+  .g-ring::before{content:"";position:absolute;top:-5px;left:50%;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:var(--accent);box-shadow:var(--sh-accent)}
+  .g-dots{position:absolute;bottom:14px;left:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .g-dots i{width:6px;height:6px;border-radius:50%;background:rgba(0,82,255,.35)}
+  .g-corner{position:absolute;top:22px;right:16px;width:64px;height:64px;border-radius:16px;background:var(--grad);box-shadow:var(--sh-accent-lg)}
+  .float{position:absolute;background:var(--card);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--sh-xl);padding:15px;will-change:transform}
+  .f-evidence{top:44px;left:0;width:236px;animation:float 5s ease-in-out infinite}
+  .f-doc{bottom:34px;right:2px;width:250px;animation:float 4.2s ease-in-out infinite .4s}
+  .fl-h{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+  .fl-h .ic{width:16px;height:16px;border-radius:5px;background:var(--grad);display:grid;place-items:center;color:#fff}
+  .fl-h .ic svg{width:10px;height:10px}
+  .chips{display:flex;flex-wrap:wrap;gap:6px}
+  .chip{font-family:var(--mono);font-size:9.5px;color:var(--muted-fg);background:var(--muted);border:1px solid var(--border);border-radius:6px;padding:4px 7px;display:inline-flex;align-items:center;gap:4px}
+  .chip svg{width:10px;height:10px;color:var(--accent)}
+  .f-doc .d-title{font-family:var(--disp);font-size:14px;line-height:1.15;color:var(--fg);margin-bottom:8px}
+  .f-doc .d-line{height:5px;border-radius:3px;background:var(--muted);margin-bottom:6px}
+  .f-doc .d-line.s{width:70%}
+  .f-doc .d-verify{display:inline-flex;align-items:center;gap:5px;margin-top:9px;font-family:var(--mono);font-size:9px;color:var(--accent);font-weight:500}
+  .f-doc .d-verify svg{width:11px;height:11px}
+  .g-conn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:var(--card);border:1px solid var(--border);box-shadow:var(--sh-lg);display:grid;place-items:center;color:var(--accent);z-index:2}
+  .g-conn svg{width:18px;height:18px;animation:nudge 1.9s ease-in-out infinite}
 
-  /* SECTION HEADERS */
-  .sec-head{max-width:680px;margin-bottom:48px}
-  .sec-head h2{font-size:38px;margin:16px 0 14px}
-  .sec-head p{color:var(--haze);font-size:17px}
-  .center{margin-left:auto;margin-right:auto;text-align:center}
+  /* ============================================================ INVERTED (stats / mission) */
+  .inverted{background:var(--fg);color:#fff;position:relative;overflow:hidden}
+  .inverted .dotgrid{position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,1) 1px,transparent 1px);background-size:30px 30px;opacity:.035;pointer-events:none}
+  .inverted .iglow{position:absolute;width:560px;height:560px;border-radius:50%;background:radial-gradient(circle,rgba(0,82,255,.24),transparent 65%);filter:blur(30px);pointer-events:none}
+  .inverted .sec-head h2{color:#fff}
+  .inverted .sec-head p{color:rgba(255,255,255,.66)}
 
-  /* PROBLEM */
-  .problem{background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-  .stat{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:26px}
-  .stat .num{font-family:var(--disp);font-weight:800;font-size:40px;letter-spacing:-.03em;color:var(--paper)}
-  .stat .num small{color:var(--signal);font-size:26px}
-  .stat .lbl{color:var(--haze);font-size:14.5px;margin-top:8px}
-  .stat .src{font-family:var(--mono);font-size:10px;color:var(--haze-2);margin-top:14px;letter-spacing:.04em}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;position:relative}
+  .stat{padding:30px;border:1px solid rgba(255,255,255,.1);border-radius:var(--r-xl);background:rgba(255,255,255,.03)}
+  .stat .num{font-family:var(--disp);font-size:56px;letter-spacing:-.03em;color:#fff;line-height:1;font-variant-numeric:tabular-nums}
+  .stat .num small{font-size:30px;color:#9EC0FF;margin-left:2px}
+  .stat .lbl{color:rgba(255,255,255,.72);font-size:14.5px;margin-top:14px;line-height:1.6}
+  .stat .src{font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4);margin-top:16px;letter-spacing:.06em}
 
-  /* HOW */
-  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
-  .step{position:relative;padding-top:22px}
-  .step .sn{font-family:var(--mono);font-size:12px;color:var(--signal);letter-spacing:.1em}
-  .step h3{font-size:21px;margin:14px 0 9px}
-  .step p{color:var(--haze);font-size:15px}
-  .step .ic{width:42px;height:42px;border-radius:10px;background:var(--surface);border:1px solid var(--line);display:grid;place-items:center;color:var(--signal);margin-bottom:4px}
-  .step .ic svg{width:21px;height:21px}
-  .step-line{position:absolute;top:43px;left:60px;right:-10px;height:1px;background:linear-gradient(90deg,var(--line),transparent)}
-  .docs-out{display:flex;gap:12px;flex-wrap:wrap;margin-top:42px}
-  .doc-pill{font-family:var(--mono);font-size:12.5px;color:var(--haze);border:1px solid var(--line);border-radius:30px;padding:9px 16px;background:var(--surface)}
-  .doc-pill b{color:var(--paper);font-weight:500}
-  .doc-pill.custom{border-color:rgba(52,216,196,.4);background:var(--signal-deep)}
-  .doc-pill.custom b{color:var(--signal)}
-  .docs-note{font-family:var(--mono);font-size:12.5px;color:var(--haze);margin-top:20px;letter-spacing:.02em;max-width:64ch;line-height:1.7}
-  .docs-note b{color:var(--signal);font-weight:500}
+  /* ============================================================ HOW / TIMELINE */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:56px}
+  .step{position:relative}
+  .step .ic{width:56px;height:56px;border-radius:15px;background:var(--grad);display:grid;place-items:center;color:#fff;box-shadow:var(--sh-accent);margin-bottom:20px;position:relative;z-index:2}
+  .step .ic svg{width:26px;height:26px}
+  .step-line{position:absolute;top:28px;left:56px;right:-26px;height:2px;background:linear-gradient(90deg,rgba(0,82,255,.4),rgba(0,82,255,.08));z-index:1}
+  .step .sn{font-family:var(--mono);font-size:12px;color:var(--accent);letter-spacing:.1em;font-weight:500}
+  .step h3{font-size:23px;margin:12px 0 10px;letter-spacing:-.01em}
+  .step p{color:var(--muted-fg);font-size:15.5px;line-height:1.7}
 
-  /* SECURITY */
-  .security{background:var(--ink-2);border-top:1px solid var(--line)}
-  .sec-cols{display:grid;grid-template-columns:.9fr 1.1fr;gap:54px;align-items:start}
-  .sec-feature{display:flex;gap:15px;padding:20px 0;border-top:1px solid var(--line)}
-  .sec-feature:last-child{border-bottom:1px solid var(--line)}
-  .sec-feature .ic{flex:none;width:38px;height:38px;border-radius:9px;background:var(--signal-deep);border:1px solid rgba(52,216,196,.3);display:grid;place-items:center;color:var(--signal)}
-  .sec-feature .ic svg{width:19px;height:19px}
-  .sec-feature h4{font-family:var(--disp);font-weight:700;font-size:16px;margin-bottom:4px}
-  .sec-feature p{color:var(--haze);font-size:14px}
-  .deploy-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px;position:sticky;top:88px}
-  .deploy-card .ttl{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--haze-2);margin-bottom:18px}
-  .boundary{border:1px dashed rgba(52,216,196,.4);border-radius:11px;padding:16px;background:rgba(52,216,196,.04);position:relative;margin-bottom:16px}
-  .boundary .btag{position:absolute;top:-9px;left:14px;background:var(--surface);padding:0 8px;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--signal);text-transform:uppercase}
-  .b-row{display:flex;align-items:center;gap:10px;font-size:13px;padding:7px 0;color:var(--paper)}
-  .b-row .bi{width:24px;height:24px;border-radius:6px;background:var(--surface-2);display:grid;place-items:center;color:var(--signal);flex:none}
-  .b-row .bi svg{width:13px;height:13px}
-  .b-out{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11px;color:var(--haze-2);padding-top:6px}
-  .b-out .x{color:#c25b5b}
-  .claim{font-family:var(--mono);font-size:11px;color:var(--haze);line-height:1.7;border-left:2px solid var(--signal);padding-left:14px;margin-top:4px}
+  .out-wrap{margin-top:64px;display:grid;grid-template-columns:1fr;gap:22px}
+  .docs-out{display:flex;gap:12px;flex-wrap:wrap}
+  .doc-pill{font-family:var(--mono);font-size:12.5px;color:var(--muted-fg);border:1px solid var(--border);border-radius:100px;padding:10px 17px;background:var(--card);box-shadow:var(--sh-sm)}
+  .doc-pill b{color:var(--fg);font-weight:600}
+  .doc-pill.custom{border-color:rgba(0,82,255,.4);background:rgba(0,82,255,.05)}
+  .doc-pill.custom b{color:var(--accent)}
+  .docs-note{font-family:var(--sans);font-size:15px;color:var(--muted-fg);max-width:60ch;line-height:1.7}
+  .docs-note b{color:var(--fg);font-weight:600}
 
-  /* ROADMAP */
-  .road-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-  .mod{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:24px;transition:.18s}
-  .mod:hover{border-color:rgba(52,216,196,.4);transform:translateY(-2px)}
-  .mod .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:20px;display:inline-block;margin-bottom:14px}
-  .tag-live{background:var(--signal-deep);color:var(--signal);border:1px solid rgba(52,216,196,.3)}
-  .tag-next{background:rgba(242,163,60,.12);color:var(--caution);border:1px solid rgba(242,163,60,.25)}
-  .tag-later{background:var(--surface-2);color:var(--haze);border:1px solid var(--line)}
-  .mod h3{font-size:18px;margin-bottom:8px}
-  .mod p{color:var(--haze);font-size:14px}
-  .modular-note{font-family:var(--mono);font-size:12.5px;color:var(--haze);text-align:center;margin-top:34px;letter-spacing:.02em}
-  .modular-note b{color:var(--signal);font-weight:500}
+  /* ============================================================ FEATURE GRID */
+  .feat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+  .feat{padding:30px;position:relative;overflow:hidden;transition:box-shadow .3s ease,transform .3s ease}
+  .feat:hover{box-shadow:var(--sh-xl);transform:translateY(-3px)}
+  .feat .ic{width:50px;height:50px;border-radius:13px;background:var(--grad);display:grid;place-items:center;color:#fff;box-shadow:var(--sh-accent);margin-bottom:18px}
+  .feat .ic svg{width:23px;height:23px}
+  .feat h4{font-family:var(--sans);font-weight:600;font-size:18px;letter-spacing:-.01em;margin-bottom:9px}
+  .feat p{color:var(--muted-fg);font-size:15px;line-height:1.7}
 
-  /* MISSION */
-  .mission{background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-  .mission-in{max-width:780px}
-  .mission h2{font-size:32px;margin:16px 0 18px}
-  .mission p{color:var(--haze);font-size:17px;margin-bottom:16px}
-  .mission p b{color:var(--paper);font-weight:600}
+  /* ============================================================ SECURITY */
+  .sec-cols{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:start}
+  .sec-feature{display:flex;gap:16px;padding:22px 0;border-top:1px solid var(--border)}
+  .sec-feature:last-child{border-bottom:1px solid var(--border)}
+  .sec-feature .ic{flex:none;width:44px;height:44px;border-radius:11px;background:rgba(0,82,255,.08);border:1px solid rgba(0,82,255,.18);display:grid;place-items:center;color:var(--accent)}
+  .sec-feature .ic svg{width:21px;height:21px}
+  .sec-feature h4{font-family:var(--sans);font-weight:600;font-size:16.5px;margin-bottom:5px}
+  .sec-feature p{color:var(--muted-fg);font-size:14.5px;line-height:1.65}
+  /* featured card with gradient border */
+  .featured{background:var(--grad);border-radius:var(--r-2xl);padding:2px;box-shadow:var(--sh-xl);position:sticky;top:96px}
+  .featured-in{background:var(--card);border-radius:calc(var(--r-2xl) - 2px);padding:30px}
+  .featured .ttl{font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted-fg);margin-bottom:20px}
+  .boundary{border:1.5px dashed rgba(0,82,255,.4);border-radius:14px;padding:18px;background:rgba(0,82,255,.04);position:relative;margin-bottom:18px}
+  .boundary .btag{position:absolute;top:-10px;left:16px;background:var(--card);padding:0 9px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--accent);text-transform:uppercase;font-weight:500}
+  .b-row{display:flex;align-items:center;gap:11px;font-size:13.5px;padding:8px 0;color:var(--fg)}
+  .b-row .bi{width:28px;height:28px;border-radius:8px;background:var(--muted);display:grid;place-items:center;color:var(--accent);flex:none}
+  .b-row .bi svg{width:15px;height:15px}
+  .b-out{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:11.5px;color:var(--muted-fg);padding-top:8px}
+  .b-out .x{color:#DC2626;font-weight:700}
+  .claim{font-family:var(--sans);font-size:13.5px;color:var(--muted-fg);line-height:1.7;border-left:2.5px solid var(--accent);padding-left:15px;margin-top:20px}
+  .claim b{color:var(--fg);font-weight:600}
 
-  /* CTA */
-  .cta{padding:104px 0;text-align:center;position:relative;overflow:hidden}
-  .cta h2{font-size:44px;margin-bottom:18px}
-  .cta p{color:var(--haze);font-size:18px;max-width:34em;margin:0 auto 32px}
+  /* ============================================================ ROADMAP */
+  .road-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px}
+  .mod{padding:28px;transition:box-shadow .3s ease,transform .3s ease,border-color .3s ease}
+  .mod:hover{box-shadow:var(--sh-xl);transform:translateY(-3px);border-color:rgba(0,82,255,.25)}
+  .mod .tag{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:4px 11px;border-radius:100px;display:inline-block;margin-bottom:16px;font-weight:500}
+  .tag-live{background:rgba(0,82,255,.1);color:var(--accent);border:1px solid rgba(0,82,255,.25)}
+  .tag-next{background:rgba(15,23,42,.06);color:var(--fg);border:1px solid var(--border)}
+  .tag-later{background:var(--muted);color:var(--muted-fg);border:1px solid var(--border)}
+  .mod h3{font-family:var(--sans);font-weight:600;font-size:18px;margin-bottom:9px;letter-spacing:-.01em}
+  .mod p{color:var(--muted-fg);font-size:14.5px;line-height:1.65}
+  .modular-note{font-family:var(--mono);font-size:13px;color:var(--muted-fg);text-align:center;margin-top:40px;letter-spacing:.02em}
+  .modular-note b{color:var(--accent);font-weight:500}
+
+  /* ============================================================ MISSION (inverted) */
+  .mission-in{max-width:760px;position:relative}
+  .mission-in h2{font-size:clamp(28px,3.4vw,40px);color:#fff;margin:20px 0 20px}
+  .mission-in p{color:rgba(255,255,255,.72);font-size:17.5px;line-height:1.8;margin-bottom:18px}
+  .mission-in p b{color:#fff;font-weight:600}
+
+  /* ============================================================ CTA */
+  .cta{padding:130px 0;text-align:center;position:relative;overflow:hidden}
+  .cta-glow{position:absolute;top:50%;left:50%;width:760px;height:520px;transform:translate(-50%,-50%);background:radial-gradient(ellipse,rgba(0,82,255,.10),transparent 70%);pointer-events:none}
+  .cta h2{font-size:clamp(32px,4.4vw,56px);margin:22px 0 18px}
+  .cta p{color:var(--muted-fg);font-size:18.5px;max-width:36em;margin:0 auto 34px;line-height:1.7}
   .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
 
-  /* FOOTER */
-  footer{border-top:1px solid var(--line);padding:46px 0 60px}
-  .foot-in{display:flex;justify-content:space-between;align-items:flex-start;gap:30px;flex-wrap:wrap}
-  .foot-disc{font-family:var(--mono);font-size:11px;color:var(--haze-2);max-width:46em;line-height:1.7;margin-top:22px}
-  .foot-links{display:flex;gap:24px;font-size:14px;color:var(--haze)}
+  /* ============================================================ FOOTER */
+  footer{border-top:1px solid var(--border);padding:56px 0 64px;background:var(--card)}
+  .foot-in{display:flex;justify-content:space-between;align-items:flex-start;gap:32px;flex-wrap:wrap}
+  .foot-disc{font-family:var(--mono);font-size:11px;color:var(--muted-fg);max-width:48em;line-height:1.8;margin-top:26px}
+  .foot-links{display:flex;gap:26px;font-size:14px;color:var(--muted-fg);font-weight:500;flex-wrap:wrap}
+  .foot-links a:hover{color:var(--fg)}
 
-  /* reveal */
-  .reveal{opacity:0;transform:translateY(24px);filter:blur(5px);transition:opacity .7s cubic-bezier(.16,.84,.44,1),transform .7s cubic-bezier(.16,.84,.44,1),filter .7s ease;will-change:opacity,transform}
-  .reveal.in{opacity:1;transform:none;filter:none}
-  /* staggered cascades within card groups */
-  .stat-grid .reveal:nth-child(2),.steps .reveal:nth-child(2){transition-delay:.09s}
-  .stat-grid .reveal:nth-child(3),.steps .reveal:nth-child(3){transition-delay:.18s}
-  .road-grid .reveal:nth-child(2),.road-grid .reveal:nth-child(5){transition-delay:.08s}
-  .road-grid .reveal:nth-child(3),.road-grid .reveal:nth-child(6){transition-delay:.16s}
-  .sec-feature.reveal:nth-child(2){transition-delay:.07s}
-  .sec-feature.reveal:nth-child(3){transition-delay:.14s}
-  .sec-feature.reveal:nth-child(4){transition-delay:.21s}
+  /* ============================================================ MOTION */
+  .reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1);will-change:opacity,transform}
+  .reveal.in{opacity:1;transform:none}
+  .stat-grid .reveal:nth-child(2),.steps .reveal:nth-child(2),.feat-grid .reveal:nth-child(2),.road-grid .reveal:nth-child(2){transition-delay:.1s}
+  .stat-grid .reveal:nth-child(3),.steps .reveal:nth-child(3),.feat-grid .reveal:nth-child(3),.road-grid .reveal:nth-child(3){transition-delay:.2s}
+  .road-grid .reveal:nth-child(4){transition-delay:.1s}
+  .road-grid .reveal:nth-child(5){transition-delay:.2s}
+  .road-grid .reveal:nth-child(6){transition-delay:.3s}
+  .sec-feature.reveal:nth-child(2){transition-delay:.08s}
+  .sec-feature.reveal:nth-child(3){transition-delay:.16s}
+  .sec-feature.reveal:nth-child(4){transition-delay:.24s}
 
-  /* scroll progress indicator */
-  .progress{position:fixed;top:0;left:0;height:2px;width:100%;transform:scaleX(0);transform-origin:0 50%;background:linear-gradient(90deg,var(--signal),#54e6d4);z-index:60;will-change:transform}
-
-  /* tabular figures so counting numbers stay steady */
-  .stat .num{font-variant-numeric:tabular-nums}
-
-  /* HERO — choreographed "evidence in, document out" demonstration */
-  .panel .ev-col,.panel .xarrow,.panel .doc{opacity:0;transform:translateY(12px);transition:opacity .6s ease,transform .6s cubic-bezier(.16,.84,.44,1)}
-  .panel.in .ev-col{opacity:1;transform:none;transition-delay:.05s}
-  .panel.in .xarrow{opacity:1;transform:none;transition-delay:.5s}
-  .panel.in .doc{opacity:1;transform:none;transition-delay:.78s}
-  .panel.in .xarrow svg{animation:nudge 1.9s ease-in-out 1.1s infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-11px)}}
+  @keyframes pulse-dot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.35);opacity:.55}}
   @keyframes nudge{0%,100%{transform:translateX(0)}50%{transform:translateX(4px)}}
-  /* one-time scan sweep as the document is "generated" */
-  .doc{position:relative;overflow:hidden}
-  .panel.in .doc::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 20%,rgba(52,216,196,.18),transparent 80%);transform:translateX(-130%);animation:scan 1.1s cubic-bezier(.4,0,.2,1) 1s 1}
-  @keyframes scan{to{transform:translateX(130%)}}
-  /* live status dot on the eyebrow badges */
-  .dot{position:relative}
-  .dot::after{content:"";position:absolute;inset:-3px;border-radius:50%;background:var(--signal);opacity:.35;animation:ping 2.4s cubic-bezier(0,0,.2,1) infinite}
-  @keyframes ping{0%{transform:scale(1);opacity:.35}70%,100%{transform:scale(2.6);opacity:0}}
 
-  @media (max-width:920px){
-    .hero-grid,.sec-cols{grid-template-columns:1fr;gap:40px}
-    .deploy-card{position:static}
-    .stat-grid,.steps,.road-grid{grid-template-columns:1fr}
+  /* ============================================================ RESPONSIVE */
+  @media (max-width:940px){
+    .hero-grid,.sec-cols{grid-template-columns:1fr;gap:44px}
+    .graphic{display:none}
+    .featured{position:static}
+    .stat-grid,.steps,.feat-grid,.road-grid{grid-template-columns:1fr}
     .step-line{display:none}
-    .hero h1{font-size:42px}
     .nav-links{display:none}
     .menu-btn{display:block}
-    .sec-head h2,.cta h2{font-size:31px}
+    .sec-pad{padding:88px 0}
+  }
+  @media (max-width:560px){
+    .hero-cta .btn,.cta-row .btn{width:100%}
   }
   @media (prefers-reduced-motion:reduce){
-    .reveal{opacity:1;transform:none;filter:none;transition:none}
+    .reveal{opacity:1;transform:none;transition:none}
     html{scroll-behavior:auto}
-    .grid-bg{transform:none!important}
-    .panel .ev-col,.panel .xarrow,.panel .doc{opacity:1;transform:none;transition:none}
-    .panel.in .xarrow svg,.panel.in .doc::after,.dot::after{animation:none;display:none}
+    .g-ring,.float,.g-conn svg,.section-label .ld,.trust-row .td{animation:none!important}
     .progress{display:none}
   }
 </style>
@@ -245,7 +287,7 @@
       <a href="#roadmap">Roadmap</a>
     </div>
     <div class="nav-cta">
-      <a href="#contact" class="btn btn-ghost" style="padding:10px 16px">Book a pilot</a>
+      <a href="#contact" class="btn btn-outline" style="height:42px;padding:0 18px">Book a pilot</a>
       <button class="menu-btn" id="menuBtn" aria-label="Menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
     </div>
   </div>
@@ -260,65 +302,58 @@
 
 <!-- HERO -->
 <header class="hero" id="top">
-  <div class="grid-bg" id="heroGrid"></div>
+  <div class="hero-glow"></div>
   <div class="wrap hero-grid">
     <div>
-      <span class="eyebrow">For the U.S. private ship-repair industrial base</span>
-      <h1>Field evidence in.<br><span class="hl">Audit-ready documentation</span> out.</h1>
-      <p class="lede">Keelson turns whatever your crew captures on the deck — photos, voice notes, gauge readings, rough field notes — into formatted, verifiable repair documentation in seconds, and runs entirely inside your own secure environment, so controlled information never leaves your boundary.</p>
+      <span class="section-label"><span class="ld"></span><span>U.S. ship-repair industrial base</span></span>
+      <h1>Field evidence in.<br><span class="hl-wrap"><span class="gradient-text">Audit-ready documentation</span><span class="gradient-underline"></span></span> out.</h1>
+      <p class="lede">Keelson turns whatever your crew captures on the deck — photos, voice notes, gauge readings, rough field notes — into formatted, verifiable repair documentation in seconds. And it runs entirely inside your own secure environment, so controlled information never leaves your boundary.</p>
       <div class="hero-cta">
         <a href="#" class="btn btn-primary js-demo-link">Launch the demo <span class="arrow">→</span></a>
-        <a href="#how" class="btn btn-ghost">See how it works</a>
+        <a href="#how" class="btn btn-outline">See how it works</a>
       </div>
       <div class="trust-row">
-        <span><span class="dot"></span>Runs in your environment</span>
-        <span><span class="dot"></span>CUI never leaves your boundary</span>
-        <span><span class="dot"></span>Human-verified OQE</span>
+        <span><span class="td"></span>Runs in your environment</span>
+        <span><span class="td"></span>CUI never leaves your boundary</span>
+        <span><span class="td"></span>Human-verified OQE</span>
       </div>
     </div>
 
-    <!-- signature transform -->
-    <div class="panel reveal">
-      <span class="panel-label">Condition found · MMR2 · Fr 142–148</span>
-      <div class="xform">
-        <div class="ev-col">
-          <div class="ev-h">Field evidence · any format</div>
-          <div class="ev-types">
-            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.2"/></svg>Photos</span>
-            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg>Voice notes</span>
-            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4.5 4.5 0 0 1 3 3L21 21l-5.3-3.3a4.5 4.5 0 0 1-3-3z"/><path d="M3 3l7.5 7.5M9 5l2 2M5 9l2 2"/></svg>UT / gauge readings</span>
-            <span class="et"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Sketches &amp; markups</span>
-            <span class="et more">+ scans, forms, logs…</span>
-          </div>
-          <div class="notes">heavy scale + pitting under deck plates, tank top bad ~fr144-146, UT shots .280 (nominal .375), water intrusion, coating gone…</div>
-          <div class="mic"><svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3" stroke="currentColor" stroke-width="2" fill="none"/></svg>DICTATED ON DECK</div>
+    <!-- animated hero graphic -->
+    <div class="graphic" aria-hidden="true">
+      <div class="g-ring"></div>
+      <div class="g-corner"></div>
+      <div class="g-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+
+      <div class="float f-evidence">
+        <div class="fl-h"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.2"/></svg></span>Field evidence · any format</div>
+        <div class="chips">
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.2"/></svg>Photos</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"/><path d="M19 11a7 7 0 0 1-14 0M12 18v3"/></svg>Voice notes</span>
+          <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4.5 4.5 0 0 1 3 3L21 21l-5.3-3.3a4.5 4.5 0 0 1-3-3z"/><path d="M3 3l7.5 7.5"/></svg>UT readings</span>
+          <span class="chip">+ sketches, forms…</span>
         </div>
-        <div class="xarrow">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          <div>KEELSON</div>
-        </div>
-        <div class="doc">
-          <div class="doc-h">Condition Found Report</div>
-          <div class="doc-title">Accelerated plate wastage — MMR2 tank top</div>
-          <div class="doc-meta"><span>CFR-26-3-0147</span><span>HULL-072</span><span>AVAIL 26-3</span></div>
-          <div class="doc-body">Upon removal of deck plating, accelerated corrosion and through-scale pitting identified, Fr 142–148. UT minimum 0.281″ vs 0.375″ nominal — below allowable in multiple locations…</div>
-          <div>
-            <span class="doc-chip">▣ Photo · FR144</span>
-            <span class="doc-chip">▣ UT log · .281</span>
-            <span class="doc-chip">▣ Voice note</span>
-          </div>
-          <div class="doc-verify"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>VERIFIED · READY FOR QA SIGN-OFF</div>
-        </div>
+      </div>
+
+      <div class="g-conn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+
+      <div class="float f-doc">
+        <div class="fl-h"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>Condition Found Report</div>
+        <div class="d-title">Accelerated plate wastage — MMR2 tank top</div>
+        <div class="d-line"></div><div class="d-line"></div><div class="d-line s"></div>
+        <div class="d-verify"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>VERIFIED · READY FOR QA SIGN-OFF</div>
       </div>
     </div>
   </div>
 </header>
 
-<!-- PROBLEM -->
-<section class="problem sec-pad" id="problem">
+<!-- PROBLEM (inverted) -->
+<section class="inverted sec-pad" id="problem">
+  <div class="dotgrid"></div>
+  <div class="iglow" style="top:-160px;left:-120px"></div>
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">The documentation tax</span>
+      <span class="section-label on-dark"><span class="ld"></span><span>The documentation tax</span></span>
       <h2>The paperwork is crushing a workforce that's disappearing.</h2>
       <p>Private repair contractors owe their customers mountains of mandatory documentation — condition found reports, OQE packages, daily reports — at the exact moment their most experienced people are walking out the door.</p>
     </div>
@@ -331,7 +366,7 @@
       <div class="stat reveal">
         <div class="num"><span class="cv" data-to="27">0</span><small>%</small></div>
         <div class="lbl">Of the shipyard workforce is 55 or older — a wave of irreplaceable knowledge retiring now.</div>
-        <div class="src">SOURCE · DOL / NAVY</div>
+        <div class="src">SOURCE · DOL / BLS</div>
       </div>
       <div class="stat reveal">
         <div class="num"><span class="cv" data-to="45">0</span><small>min</small></div>
@@ -346,21 +381,21 @@
 <section class="sec-pad" id="how">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">How it works</span>
+      <span class="section-label"><span class="ld"></span><span>How it works</span></span>
       <h2>Capture the work. Keelson writes the record.</h2>
       <p>Your crew already captures what they found on the deck — however they capture it. Keelson does the part they hate: turning it into the document your customer will accept.</p>
     </div>
     <div class="steps">
       <div class="step reveal">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.2"/></svg></div>
         <div class="step-line"></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.2"/></svg></div>
         <div class="sn">01 — CAPTURE</div>
         <h3>From the deck</h3>
         <p>Photos, dictated voice notes, UT and gauge readings, a scribbled sketch, a scanned form — whatever the crew has. Rough is fine.</p>
       </div>
       <div class="step reveal">
-        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-3.8 3 1.1 4.8L12 14.5 8.2 16.8 9.3 12 5.5 9l4.6-1.4z"/></svg></div>
         <div class="step-line"></div>
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l1.9 4.6L18.5 9l-3.8 3 1.1 4.8L12 14.5 8.2 16.8 9.3 12 5.5 9l4.6-1.4z"/></svg></div>
         <div class="sn">02 — GENERATE</div>
         <h3>Audit-ready draft</h3>
         <p>Keelson drafts the document in the format your contract requires — every line traceable back to the evidence it came from. Nothing invented.</p>
@@ -369,27 +404,58 @@
         <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         <div class="sn">03 — VERIFY &amp; SIGN</div>
         <h3>Human sign-off</h3>
-        <p>Your QA lead checks each section against the evidence and signs off — then exports a submission-ready package in the format your customer's system expects. The expert verifies instead of writing from scratch.</p>
+        <p>Your QA lead checks each section against the evidence and signs off — then exports a submission-ready package in the format your customer's system expects.</p>
       </div>
     </div>
-    <div class="docs-out reveal">
-      <div class="doc-pill"><b>Condition Found Reports</b> · growth work</div>
-      <div class="doc-pill"><b>OQE / QA inspection packages</b></div>
-      <div class="doc-pill"><b>Test &amp; inspection plans</b></div>
-      <div class="doc-pill"><b>Daily production reports</b></div>
-      <div class="doc-pill custom"><b>+ Your own formats</b></div>
+
+    <div class="out-wrap reveal">
+      <div class="docs-out">
+        <div class="doc-pill"><b>Condition Found Reports</b> · growth work</div>
+        <div class="doc-pill"><b>OQE / QA inspection packages</b></div>
+        <div class="doc-pill"><b>Test &amp; inspection plans</b></div>
+        <div class="doc-pill"><b>Daily production reports</b></div>
+        <div class="doc-pill custom"><b>+ Your own formats</b></div>
+      </div>
+      <p class="docs-note">Every output is matched to your customer's spec, and the formatting is configurable. Need a document for a situation that isn't on this list? Keelson builds a <b>general, tailored format</b> that fits how your yard actually works.</p>
     </div>
-    <p class="docs-note reveal">Every output is matched to your customer's spec, and the formatting is configurable. Need a document for a situation that isn't on this list? Keelson builds a <b>general, tailored format</b> that fits how your yard actually works.</p>
+  </div>
+</section>
+
+<!-- CAPABILITIES / FEATURES -->
+<section class="sec-pad" style="background:var(--muted)" id="capabilities">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <span class="section-label"><span class="ld"></span><span>Built for the deck</span></span>
+      <h2>Engineering rigor, not a chatbot.</h2>
+      <p>Keelson is purpose-built software for repair documentation — traceable, verifiable, and grounded in the evidence your crew actually collects.</p>
+    </div>
+    <div class="feat-grid">
+      <div class="feat card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg></div>
+        <h4>Every line traces to its evidence</h4>
+        <p>Each statement links back to the photo, reading, or field note behind it. Auditable end to end — the opposite of a black box.</p>
+      </div>
+      <div class="feat card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg></div>
+        <h4>Nothing is auto-submitted</h4>
+        <p>A human QA lead verifies every section against the source evidence and signs off before anything leaves the building.</p>
+      </div>
+      <div class="feat card reveal">
+        <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 12h6"/></svg></div>
+        <h4>Formats that fit your contract</h4>
+        <p>Condition found, OQE, TIPs, daily reports — configured to your customer's spec, or a tailored general format for anything else.</p>
+      </div>
+    </div>
   </div>
 </section>
 
 <!-- SECURITY -->
-<section class="security sec-pad" id="security">
+<section class="sec-pad" id="security">
   <div class="wrap">
     <div class="sec-head reveal">
-      <span class="eyebrow">Security &amp; deployment</span>
+      <span class="section-label"><span class="ld"></span><span>Security &amp; deployment</span></span>
       <h2>Built for controlled information from day one.</h2>
-      <p>Most software can't legally touch this work. Keelson is designed so the controlled information never leaves the environment you already trust — which is why adoption doesn't require a security exception.</p>
+      <p>Most software can't legally touch this work. Keelson is designed so controlled information never leaves the environment you already trust — which is why adoption doesn't require a security exception.</p>
     </div>
     <div class="sec-cols">
       <div>
@@ -399,11 +465,11 @@
         </div>
         <div class="sec-feature reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>
-          <div><h4>The AI runs inside the boundary too</h4><p>No prompts, photos, or notes are sent to outside clouds. Inference runs within your environment — on-prem or your authorized GovCloud — so nothing escapes.</p></div>
+          <div><h4>The AI runs inside the boundary too</h4><p>No prompts, photos, or notes are sent to outside clouds. Inference runs within your environment — on-prem or your authorized GovCloud.</p></div>
         </div>
         <div class="sec-feature reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l8 4v6c0 5-3.4 8-8 10-4.6-2-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></div>
-          <div><h4>Supports your CMMC boundary</h4><p>Designed to sit cleanly inside a Level 2 / NIST SP 800-171 scope with a clear customer responsibility matrix. <span style="color:var(--haze-2)">Keelson is a tool, not a certification.</span></p></div>
+          <div><h4>Supports your CMMC boundary</h4><p>Designed to sit cleanly inside a Level 2 / NIST SP 800-171 scope with a clear customer responsibility matrix. <span style="color:var(--accent)">Keelson is a tool, not a certification.</span></p></div>
         </div>
         <div class="sec-feature reveal">
           <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13l2 2 4-4"/></svg></div>
@@ -411,61 +477,67 @@
         </div>
       </div>
 
-      <div class="deploy-card reveal">
-        <div class="ttl">Deployment model</div>
-        <div class="boundary">
-          <span class="btag">Your environment</span>
-          <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg></span> Keelson app (on-prem or your GovCloud)</div>
-          <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg></span> AI model — runs in-boundary</div>
-          <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span> Your CUI, photos &amp; reports — stay here</div>
+      <div class="featured reveal">
+        <div class="featured-in">
+          <div class="ttl">Deployment model</div>
+          <div class="boundary">
+            <span class="btag">Your environment</span>
+            <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="1"/><rect x="3" y="14" width="18" height="6" rx="1"/></svg></span> Keelson app (on-prem or your GovCloud)</div>
+            <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/></svg></span> AI model — runs in-boundary</div>
+            <div class="b-row"><span class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2M3 7h18v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span> Your CUI, photos &amp; reports — stay here</div>
+          </div>
+          <div class="b-out"><span class="x">✕</span> No CUI sent to Keelson or any outside cloud</div>
+          <div class="claim">You own the controlled information. <b>Keelson is the software that runs where it already lives.</b></div>
         </div>
-        <div class="b-out"><span class="x">✕</span> No CUI sent to Keelson or any outside cloud</div>
-        <div class="claim" style="margin-top:18px">You own the controlled information.<br>Keelson is the software that runs where it already lives.</div>
       </div>
     </div>
   </div>
 </section>
 
 <!-- ROADMAP -->
-<section class="sec-pad" id="roadmap">
+<section class="sec-pad" style="background:var(--muted)" id="roadmap">
   <div class="wrap">
     <div class="sec-head center reveal">
-      <span class="eyebrow">Roadmap &amp; modularity</span>
+      <span class="section-label"><span class="ld"></span><span>Roadmap &amp; modularity</span></span>
       <h2>One secure core. Modules that snap on.</h2>
       <p>Documentation is the wedge. Every module shares the same in-boundary engine and evidence trail — so each one compounds the last.</p>
     </div>
     <div class="road-grid">
-      <div class="mod reveal"><span class="tag tag-live">Pilot</span><h3>Repair documentation</h3><p>Condition found reports, OQE packages, and daily reports from field evidence. The wedge that's live today.</p></div>
-      <div class="mod reveal"><span class="tag tag-live">Pilot</span><h3>Evidence &amp; audit trail</h3><p>Every document line linked to its source photo and note, with verification and sign-off built in.</p></div>
-      <div class="mod reveal"><span class="tag tag-next">Next</span><h3>Knowledge capture</h3><p>Turn a retiring master tradesperson's process into reusable, searchable records before the knowledge walks out the door.</p></div>
-      <div class="mod reveal"><span class="tag tag-next">Next</span><h3>Growth-work tracking</h3><p>From condition found to priced change order — capture billable growth work faster and stop leaving revenue on the deck.</p></div>
-      <div class="mod reveal"><span class="tag tag-later">Later</span><h3>QA / inspection workflows</h3><p>Structured inspection checklists and OQE assembly across trades, tied to the same evidence core.</p></div>
-      <div class="mod reveal"><span class="tag tag-later">Later</span><h3>Multi-yard &amp; integrations</h3><p>Roll documentation across availabilities and yards, and connect to the ERP and scheduling systems you already run.</p></div>
+      <div class="mod card reveal"><span class="tag tag-live">Pilot</span><h3>Repair documentation</h3><p>Condition found reports, OQE packages, and daily reports from field evidence. The wedge that's live today.</p></div>
+      <div class="mod card reveal"><span class="tag tag-live">Pilot</span><h3>Evidence &amp; audit trail</h3><p>Every document line linked to its source photo and note, with verification and sign-off built in.</p></div>
+      <div class="mod card reveal"><span class="tag tag-next">Next</span><h3>Knowledge capture</h3><p>Turn a retiring master tradesperson's process into reusable, searchable records before the knowledge walks out the door.</p></div>
+      <div class="mod card reveal"><span class="tag tag-next">Next</span><h3>Growth-work tracking</h3><p>From condition found to priced change order — capture billable growth work faster and stop leaving revenue on the deck.</p></div>
+      <div class="mod card reveal"><span class="tag tag-later">Later</span><h3>QA / inspection workflows</h3><p>Structured inspection checklists and OQE assembly across trades, tied to the same evidence core.</p></div>
+      <div class="mod card reveal"><span class="tag tag-later">Later</span><h3>Multi-yard &amp; integrations</h3><p>Roll documentation across availabilities and yards, and connect to the ERP and scheduling systems you already run.</p></div>
     </div>
     <p class="modular-note reveal">Same secure core · same evidence trail · <b>your data never leaves your environment</b></p>
   </div>
 </section>
 
-<!-- MISSION -->
-<section class="mission sec-pad">
-  <div class="wrap mission-in reveal">
-    <span class="eyebrow">Why Keelson</span>
-    <h2>Built from inside the yards, not from a thousand miles away.</h2>
-    <p>Ship repair runs on a private industrial base that's buried in paperwork and losing its experts faster than it can replace them. Off-the-shelf AI can't help, because it can't be trusted with controlled information.</p>
-    <p>Keelson is built by someone who knows this world from the deckplates up — hardware, inspection, and the Hampton Roads defense community — with one focus: <b>let a leaner, greener workforce produce documentation that passes the first time, without ever putting controlled information at risk.</b></p>
+<!-- MISSION (inverted) -->
+<section class="inverted sec-pad">
+  <div class="dotgrid"></div>
+  <div class="iglow" style="bottom:-180px;right:-140px"></div>
+  <div class="wrap">
+    <div class="mission-in reveal">
+      <span class="section-label on-dark"><span class="ld"></span><span>Why Keelson</span></span>
+      <h2>Built from inside the yards, not from a thousand miles away.</h2>
+      <p>Ship repair runs on a private industrial base that's buried in paperwork and losing its experts faster than it can replace them. Off-the-shelf AI can't help, because it can't be trusted with controlled information.</p>
+      <p>Keelson is built by someone who knows this world from the deckplates up — hardware, inspection, and the Hampton Roads defense community — with one focus: <b>let a leaner, greener workforce produce documentation that passes the first time, without ever putting controlled information at risk.</b></p>
+    </div>
   </div>
 </section>
 
 <!-- CTA -->
 <section class="cta" id="contact">
-  <div class="grid-bg"></div>
+  <div class="cta-glow"></div>
   <div class="wrap reveal">
-    <span class="eyebrow center" style="justify-content:center">Limited pilot cohort</span>
-    <h2>Put a working draft in front of your QA lead.</h2>
+    <span class="section-label" style="margin:0 auto"><span class="ld"></span><span>Limited pilot cohort</span></span>
+    <h2>Put a working draft in front of<br>your QA lead.</h2>
     <p>We're partnering with a small number of Hampton Roads repair contractors to pilot Keelson on real availabilities. See it on your documents, in your environment.</p>
     <div class="cta-row">
       <a href="mailto:hello@keelson.example?subject=Keelson%20pilot%20inquiry" class="btn btn-primary">Book a pilot <span class="arrow">→</span></a>
-      <a href="#" class="btn btn-ghost js-demo-link">Launch the demo</a>
+      <a href="#" class="btn btn-outline js-demo-link">Launch the demo</a>
     </div>
   </div>
 </section>
@@ -489,8 +561,8 @@
 </footer>
 
 <script>
-  // One place to set your deployed demo URL:
-  var DEMO_URL = "#"; // ← replace "#" with your live demo link (e.g. https://keelson-demo.vercel.app)
+  // Deployed demo URL — replace "#" with your live demo link.
+  var DEMO_URL = "#";
   document.querySelectorAll(".js-demo-link").forEach(function(a){ a.setAttribute("href", DEMO_URL); });
 
   // Mobile menu
@@ -500,7 +572,7 @@
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // Count-up animation for stats
+  // Count-up for stats
   function countUp(el){
     var target = parseInt(el.getAttribute("data-to"), 10) || 0;
     if(reduceMotion){ el.textContent = target; return; }
@@ -508,14 +580,13 @@
     function tick(ts){
       if(start === null) start = ts;
       var p = Math.min((ts - start) / dur, 1);
-      var eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
-      el.textContent = Math.round(eased * target);
+      el.textContent = Math.round((1 - Math.pow(1 - p, 3)) * target);
       if(p < 1) requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
   }
 
-  // Scroll reveal (also triggers count-up when a stat scrolls in)
+  // Scroll reveal + count-up trigger
   var io = new IntersectionObserver(function(entries){
     entries.forEach(function(e){
       if(e.isIntersecting){
@@ -524,28 +595,23 @@
         io.unobserve(e.target);
       }
     });
-  }, { threshold:.12 });
+  }, { threshold:.14 });
   document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
 
-  // Hero parallax + nav elevation + scroll progress (respects reduced motion)
-  var heroGrid = document.getElementById("heroGrid");
+  // Nav elevation + scroll progress
   var navEl = document.querySelector("nav");
   var progressEl = document.getElementById("progress");
   var ticking = false;
   function onScroll(){
     var y = window.pageYOffset || 0;
-    if(navEl){ navEl.classList.toggle("scrolled", y > 12); }
+    if(navEl){ navEl.classList.toggle("scrolled", y > 10); }
     if(progressEl){
-      var doc = document.documentElement;
-      var max = (doc.scrollHeight - doc.clientHeight) || 1;
+      var d = document.documentElement, max = (d.scrollHeight - d.clientHeight) || 1;
       progressEl.style.transform = "scaleX(" + Math.min(y / max, 1) + ")";
     }
-    if(heroGrid && !reduceMotion && y < 900){ heroGrid.style.transform = "translateY(" + (y * 0.18) + "px)"; }
     ticking = false;
   }
-  window.addEventListener("scroll", function(){
-    if(!ticking){ window.requestAnimationFrame(onScroll); ticking = true; }
-  }, { passive:true });
+  window.addEventListener("scroll", function(){ if(!ticking){ requestAnimationFrame(onScroll); ticking = true; } }, { passive:true });
   onScroll();
 </script>
 </body>
